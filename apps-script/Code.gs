@@ -8,8 +8,8 @@ const TIPPER_SHEET_NAME = 'Tipper_Logs';
 const DIESEL_SHEET_NAME = 'Diesel_Logs';
 
 // Current App Version for the Updater
-const LATEST_VERSION = "1.4.1";
-const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.4.1.apk";
+const LATEST_VERSION = "1.4.2";
+const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.4.2.apk";
 
 // Handle GET requests (fetch data)
 function doGet(e) {
