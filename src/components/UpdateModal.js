@@ -5,7 +5,6 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    ProgressBarAndroid,
     Dimensions,
 } from 'react-native';
 import { theme } from '../styles/theme';
@@ -53,12 +52,14 @@ export const UpdateModal = ({ visible, updateData, onDismiss }) => {
                             <Text style={styles.progressText}>
                                 Downloading... {Math.round(progress * 100)}%
                             </Text>
-                            <ProgressBarAndroid
-                                styleAttr="Horizontal"
-                                indeterminate={false}
-                                progress={progress}
-                                color={theme.colors.primary}
-                            />
+                            <View style={styles.progressBarWrapper}>
+                                <View
+                                    style={[
+                                        styles.progressBarFill,
+                                        { width: `${Math.max(0, Math.min(1, progress)) * 100}%` }
+                                    ]}
+                                />
+                            </View>
                         </View>
                     ) : (
                         <View style={styles.actions}>
@@ -128,12 +129,24 @@ const styles = StyleSheet.create({
     },
     progressContainer: {
         marginTop: theme.spacing.md,
+        paddingHorizontal: 5,
     },
     progressText: {
         fontSize: theme.fontSize.sm,
         color: theme.colors.textSecondary,
         textAlign: 'center',
-        marginBottom: theme.spacing.xs,
+        marginBottom: theme.spacing.md,
+    },
+    progressBarWrapper: {
+        height: 10,
+        backgroundColor: theme.colors.background,
+        borderRadius: 5,
+        overflow: 'hidden',
+    },
+    progressBarFill: {
+        height: '100%',
+        backgroundColor: theme.colors.primary,
+        borderRadius: 5,
     },
     actions: {
         flexDirection: 'row',
