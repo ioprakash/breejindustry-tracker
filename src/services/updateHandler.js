@@ -49,7 +49,8 @@ export const downloadAndInstallUpdate = async (downloadUrl, onProgress) => {
         // Use FileSystem to get a content URI that can be used with IntentLauncher
         const contentUri = await FileSystem.getContentUriAsync(uri);
 
-        await IntentLauncher.startActivityAsync('android.intent.action.INSTALL_PACKAGE', {
+        // ACTION_VIEW is more robust for APK installation on newer Android versions
+        await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
             data: contentUri,
             flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
             type: 'application/vnd.android.package-archive',
