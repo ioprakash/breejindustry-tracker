@@ -5,16 +5,33 @@
 const SPREADSHEET_ID = '1zdVFPZCTOmUR-FdYANyyjOHnGSu-1-ORXuPB705NdRg';
 const JCB_SHEET_NAME = 'JCB_Logs';
 const TIPPER_SHEET_NAME = 'Tipper_Logs';
+const DIESEL_SHEET_NAME = 'Diesel_Logs';
+
+// Current App Version for the Updater
+const LATEST_VERSION = "1.3.0";
+const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.3.0.apk";
 
 // Handle GET requests (fetch data)
 function doGet(e) {
   try {
     const action = e.parameter.action;
     
+    // In-App Update Check
+    if (action === 'getLatestVersion') {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        version: LATEST_VERSION,
+        downloadUrl: DOWNLOAD_URL,
+        notes: "Bug fixes, updated app icon, and in-app update feature."
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
     if (action === 'getJCB') {
       return getJCBEntries();
     } else if (action === 'getTipper') {
       return getTipperEntries();
+    } else if (action === 'getDiesel') {
+      return getDieselEntries();
     } else if (action === 'getStats') {
       return getQuickStats();
     }
@@ -40,10 +57,50 @@ function doPost(e) {
       return addJCBEntry(data.data);
     } else if (action === 'addTipper') {
       return addTipperEntry(data.data);
+    } else if (action === 'addDiesel') {
+      return addDieselEntry(data.data);
     }
     
     return ContentService.createTextOutput(
       JSON.stringify({ success: false, error: 'Invalid action' })
+    ).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ success: false, error: error.toString() })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// Add Diesel Entry
+function addDieselEntry(data) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(DIESEL_SHEET_NAME);
+    
+    if (!sheet) {
+      const newSheet = ss.insertSheet(DIESEL_SHEET_NAME);
+      newSheet.appendRow([
+        'Vehicle No', 'Date', 'Diesel (Ltr)', 'Cost', 'Meter Reading', 
+        'Paid By', 'Remarks', 'Receipt Photo', 'Timestamp'
+      ]);
+      return addDieselEntry(data);
+    }
+    
+    sheet.appendRow([
+      data.vehicleNo,
+      data.date,
+      data.dieselLtr,
+      data.dieselCost,
+      data.meterReading,
+      data.paidBy,
+      data.remarks || '',
+      data.receiptPhoto || '',
+      new Date().toISOString()
+    ]);
+    
+    return ContentService.createTextOutput(
+      JSON.stringify({ success: true })
     ).setMimeType(ContentService.MimeType.JSON);
     
   } catch (error) {
@@ -59,16 +116,14 @@ function addJCBEntry(data) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(JCB_SHEET_NAME);
     
-    // Create sheet if it doesn't exist
     if (!sheet) {
       const newSheet = ss.insertSheet(JCB_SHEET_NAME);
       newSheet.appendRow([
         'Godi No', 'Date', 'Driver Name', 'Start Mtr Day', 'Stop Mtr Day',
         'Work Detail', 'Run Mode', 'Start Mtr', 'Stop Mtr', 'Tip Count',
-        'Rate', 'Total Amount', 'Received Amount', 'Due Amount',
-        'Diesel (Ltr)', 'Diesel Cost', 'Diesel Mtr', 'Diesel Paid By', 'Timestamp'
+        'Rate', 'Total Amount', 'Received Amount', 'Due Amount', 'Timestamp'
       ]);
-      return addJCBEntry(data); // Retry after creating sheet
+      return addJCBEntry(data);
     }
     
     sheet.appendRow([
@@ -81,15 +136,11 @@ function addJCBEntry(data) {
       data.runMode || '',
       data.startMtr || '',
       data.stopMtr || '',
-      data.tipCount,
+      data.tipCount || 0,
       data.rate,
       data.totalAmount,
       data.receivedAmount || 0,
       data.dueAmount || 0,
-      data.dieselLtr || '',
-      data.dieselCost || '',
-      data.dieselMtr || '',
-      data.dieselPaidBy || '',
       new Date().toISOString()
     ]);
     
@@ -110,15 +161,13 @@ function addTipperEntry(data) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(TIPPER_SHEET_NAME);
     
-    // Create sheet if it doesn't exist
     if (!sheet) {
       const newSheet = ss.insertSheet(TIPPER_SHEET_NAME);
       newSheet.appendRow([
         'Gadi No', 'Driver Name', 'Date', 'Material', 'Loading Place',
-        'Unloading Place', 'CFT/Trip', 'Diesel (Ltr)', 'Diesel Cost',
-        'Amount Paid By', 'Diesel Photo', 'Timestamp'
+        'Unloading Place', 'CFT/Trip', 'Diesel Photo', 'Timestamp'
       ]);
-      return addTipperEntry(data); // Retry after creating sheet
+      return addTipperEntry(data);
     }
     
     sheet.appendRow([
@@ -129,10 +178,7 @@ function addTipperEntry(data) {
       data.loadingPlace || '',
       data.unloadingPlace || '',
       data.cftTrip || '',
-      data.dieselLtr || '',
-      data.dieselCost || '',
-      data.amountPaidBy || '',
-      data.dieselPhoto || '', // Base64 image
+      data.dieselPhoto || '',
       new Date().toISOString()
     ]);
     
@@ -147,46 +193,26 @@ function addTipperEntry(data) {
   }
 }
 
+// Get Diesel Entries
+function getDieselEntries() {
+  return fetchEntries(DIESEL_SHEET_NAME);
+}
+
 // Get JCB Entries
 function getJCBEntries() {
-  try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName(JCB_SHEET_NAME);
-    
-    if (!sheet) {
-      return ContentService.createTextOutput(
-        JSON.stringify({ success: true, data: [] })
-      ).setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    const data = sheet.getDataRange().getValues();
-    const headers = data[0];
-    const rows = data.slice(1);
-    
-    const entries = rows.map(row => {
-      const entry = {};
-      headers.forEach((header, index) => {
-        entry[toCamelCase(header)] = row[index];
-      });
-      return entry;
-    });
-    
-    return ContentService.createTextOutput(
-      JSON.stringify({ success: true, data: entries })
-    ).setMimeType(ContentService.MimeType.JSON);
-    
-  } catch (error) {
-    return ContentService.createTextOutput(
-      JSON.stringify({ success: false, error: error.toString() })
-    ).setMimeType(ContentService.MimeType.JSON);
-  }
+  return fetchEntries(JCB_SHEET_NAME);
 }
 
 // Get Tipper Entries
 function getTipperEntries() {
+  return fetchEntries(TIPPER_SHEET_NAME);
+}
+
+// Generic Fetch Function
+function fetchEntries(sheetName) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName(TIPPER_SHEET_NAME);
+    const sheet = ss.getSheetByName(sheetName);
     
     if (!sheet) {
       return ContentService.createTextOutput(
@@ -195,6 +221,8 @@ function getTipperEntries() {
     }
     
     const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return ContentService.createTextOutput(JSON.stringify({ success: true, data: [] })).setMimeType(ContentService.MimeType.JSON);
+    
     const headers = data[0];
     const rows = data.slice(1);
     
@@ -226,23 +254,19 @@ function getQuickStats() {
     let tipperCount = 0;
     let totalDue = 0;
     
-    // Count JCB entries
     const jcbSheet = ss.getSheetByName(JCB_SHEET_NAME);
     if (jcbSheet) {
       const jcbData = jcbSheet.getDataRange().getValues();
-      jcbCount = jcbData.length - 1; // Exclude header
-      
-      // Calculate total due (column 14 is "Due Amount", 0-indexed is 13)
+      jcbCount = Math.max(0, jcbData.length - 1);
       for (let i = 1; i < jcbData.length; i++) {
         totalDue += parseFloat(jcbData[i][13]) || 0;
       }
     }
     
-    // Count Tipper entries
     const tipperSheet = ss.getSheetByName(TIPPER_SHEET_NAME);
     if (tipperSheet) {
       const tipperData = tipperSheet.getDataRange().getValues();
-      tipperCount = tipperData.length - 1; // Exclude header
+      tipperCount = Math.max(0, tipperData.length - 1);
     }
     
     return ContentService.createTextOutput(
@@ -263,7 +287,7 @@ function getQuickStats() {
   }
 }
 
-// Helper function to convert header to camelCase
+// Helper: convert header to camelCase
 function toCamelCase(str) {
   return str
     .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
