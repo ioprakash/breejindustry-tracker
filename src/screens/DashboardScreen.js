@@ -47,7 +47,7 @@ export const DashboardScreen = () => {
     const JCBItem = ({ item }) => (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>🚜 Godi {item.godiNo}</Text>
+                <Text style={styles.cardTitle}>🚜 Gadi {item.gadiNo}</Text>
                 <Text style={styles.cardDate}>{formatDate(item.date)}</Text>
             </View>
             <View style={styles.cardBody}>
@@ -181,6 +181,9 @@ const styles = StyleSheet.create({
     },
     header: {
         padding: theme.spacing.lg,
+        backgroundColor: theme.colors.card,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.border,
     },
     title: {
         fontSize: theme.fontSize.xxl,
@@ -195,16 +198,19 @@ const styles = StyleSheet.create({
     tabs: {
         flexDirection: 'row',
         paddingHorizontal: theme.spacing.lg,
-        marginBottom: theme.spacing.md,
+        paddingVertical: theme.spacing.md,
+        backgroundColor: theme.colors.card,
         gap: theme.spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.border,
     },
     tab: {
         flex: 1,
         paddingVertical: theme.spacing.md,
         alignItems: 'center',
-        borderRadius: theme.borderRadius.sm,
-        backgroundColor: theme.colors.card,
-        borderWidth: 2,
+        borderRadius: theme.borderRadius.md,
+        backgroundColor: theme.colors.background,
+        borderWidth: 1,
         borderColor: theme.colors.border,
     },
     tabActive: {
@@ -224,17 +230,22 @@ const styles = StyleSheet.create({
     },
     card: {
         backgroundColor: theme.colors.card,
-        borderRadius: theme.borderRadius.md,
+        borderRadius: theme.borderRadius.lg,
         marginBottom: theme.spacing.md,
-        ...theme.shadows.medium,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        ...theme.shadows.md,
     },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: theme.spacing.md,
+        padding: theme.spacing.lg,
         borderBottomWidth: 1,
-        borderBottomColor: theme.colors.border,
+        borderBottomColor: theme.colors.borderLight,
+        backgroundColor: theme.colors.backgroundDark,
+        borderTopLeftRadius: theme.borderRadius.lg,
+        borderTopRightRadius: theme.borderRadius.lg,
     },
     cardTitle: {
         fontSize: theme.fontSize.lg,
@@ -246,12 +257,12 @@ const styles = StyleSheet.create({
         color: theme.colors.textMuted,
     },
     cardBody: {
-        padding: theme.spacing.md,
+        padding: theme.spacing.lg,
     },
     infoRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: theme.spacing.xs,
+        marginBottom: theme.spacing.sm,
     },
     label: {
         fontSize: theme.fontSize.sm,
@@ -281,8 +292,8 @@ const styles = StyleSheet.create({
     },
     divider: {
         height: 1,
-        backgroundColor: theme.colors.border,
-        marginVertical: theme.spacing.sm,
+        backgroundColor: theme.colors.borderLight,
+        marginVertical: theme.spacing.md,
     },
     emptyText: {
         textAlign: 'center',

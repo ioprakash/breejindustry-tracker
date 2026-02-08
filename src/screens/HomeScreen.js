@@ -73,13 +73,10 @@ export const HomeScreen = ({ navigation }) => {
                 </View>
 
                 {/* Welcome Card */}
-                <LinearGradient
-                    colors={['rgba(99, 102, 241, 0.2)', 'rgba(139, 92, 246, 0.2)']}
-                    style={styles.welcomeCard}
-                >
+                <View style={styles.welcomeCard}>
                     <Text style={styles.welcomeTitle}>Welcome Back!</Text>
                     <Text style={styles.welcomeText}>Track your JCB and Tipper operations efficiently</Text>
-                </LinearGradient>
+                </View>
 
                 {/* Menu Cards */}
                 <View style={styles.menuGrid}>
@@ -94,21 +91,21 @@ export const HomeScreen = ({ navigation }) => {
                         title="Tipper Entry"
                         subtitle="Record Tipper trips"
                         icon="🚚"
-                        colors={[theme.colors.secondary, '#be185d']}
+                        colors={[theme.colors.secondary, theme.colors.secondaryDark]}
                         onPress={() => navigation.navigate('TipperForm')}
                     />
                     <MenuCard
                         title="Dashboard"
                         subtitle="View all entries"
                         icon="📊"
-                        colors={[theme.colors.success, '#059669']}
+                        colors={[theme.colors.accent, theme.colors.accentDark]}
                         onPress={() => navigation.navigate('Dashboard')}
                     />
                     <MenuCard
                         title="Log Diesel"
                         subtitle="Record fuel usage"
                         icon="⛽"
-                        colors={[theme.colors.warning, '#ea580c']}
+                        colors={[theme.colors.warning, '#f59e0b']}
                         onPress={() => navigation.navigate('DieselEntry')}
                     />
                 </View>
@@ -144,15 +141,17 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: theme.spacing.lg,
+        paddingBottom: theme.spacing.xxl,
     },
     header: {
         alignItems: 'center',
         marginBottom: theme.spacing.xl,
+        paddingTop: theme.spacing.md,
     },
     logo: {
         width: 280,
         height: 140,
-        marginBottom: theme.spacing.md,
+        marginBottom: theme.spacing.sm,
     },
     appName: {
         fontSize: theme.fontSize.xxl,
@@ -166,21 +165,24 @@ const styles = StyleSheet.create({
         fontWeight: theme.fontWeight.medium,
     },
     welcomeCard: {
-        padding: theme.spacing.lg,
+        padding: theme.spacing.xl,
         borderRadius: theme.borderRadius.lg,
         marginBottom: theme.spacing.xl,
+        backgroundColor: theme.colors.card,
         borderWidth: 1,
-        borderColor: 'rgba(99, 102, 241, 0.3)',
+        borderColor: theme.colors.borderLight,
+        ...theme.shadows.md,
     },
     welcomeTitle: {
         fontSize: theme.fontSize.xl,
         fontWeight: theme.fontWeight.bold,
-        color: theme.colors.text,
+        color: theme.colors.primary,
         marginBottom: theme.spacing.xs,
     },
     welcomeText: {
         fontSize: theme.fontSize.md,
         color: theme.colors.textSecondary,
+        lineHeight: 22,
     },
     menuGrid: {
         gap: theme.spacing.md,
@@ -189,14 +191,14 @@ const styles = StyleSheet.create({
     menuCard: {
         borderRadius: theme.borderRadius.lg,
         overflow: 'hidden',
-        ...theme.shadows.medium,
+        ...theme.shadows.md,
     },
     menuGradient: {
-        padding: theme.spacing.lg,
+        padding: theme.spacing.xl,
     },
     menuIcon: {
-        fontSize: 40,
-        marginBottom: theme.spacing.sm,
+        fontSize: 44,
+        marginBottom: theme.spacing.md,
     },
     menuTitle: {
         fontSize: theme.fontSize.xl,
@@ -206,7 +208,8 @@ const styles = StyleSheet.create({
     },
     menuSubtitle: {
         fontSize: theme.fontSize.sm,
-        color: 'rgba(255, 255, 255, 0.9)',
+        color: 'rgba(255, 255, 255, 0.95)',
+        lineHeight: 20,
     },
     sectionTitle: {
         fontSize: theme.fontSize.lg,

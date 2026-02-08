@@ -1,55 +1,70 @@
 export const theme = {
     colors: {
-        // Primary Colors
-        primary: '#4f46e5',
-        primaryDark: '#3730a3',
-        primaryLight: '#818cf8',
+        // Primary Colors - Matching Brij Logo Deep Blue
+        primary: '#1e5a96',
+        primaryDark: '#164570',
+        primaryLight: '#42a5f5',
 
-        // Accent Colors
-        secondary: '#db2777',
-        accent: '#f59e0b',
-        success: '#10b981',
-        danger: '#ef4444',
-        warning: '#f59e0b',
+        // Secondary Colors - Vibrant Orange from "Brij" text
+        secondary: '#ff7b00',
+        secondaryDark: '#e06900',
+        secondaryLight: '#ffa040',
 
-        // Background
-        background: '#0f172a',
-        card: '#1e293b',
-        cardLight: '#334155',
+        // Accent Colors - Fresh Green from logo graph
+        accent: '#4caf50',
+        accentDark: '#388e3c',
+        accentLight: '#81c784',
 
-        // Text
-        text: '#f1f5f9',
-        textSecondary: '#cbd5e1',
-        textMuted: '#94a3b8',
+        // Functional Colors
+        success: '#4caf50',
+        danger: '#f44336',
+        warning: '#ffc107',
+        info: '#42a5f5',
+
+        // Background - Modern light theme matching logo aesthetics
+        background: '#f5f7fa',
+        backgroundDark: '#e8ecf1',
+        card: '#ffffff',
+        cardHover: '#fafbfc',
+
+        // Text - Professional hierarchy
+        text: '#1a202c',
+        textSecondary: '#4a5568',
+        textMuted: '#718096',
+        textLight: '#a0aec0',
 
         // Utility
-        border: 'rgba(255, 255, 255, 0.1)',
-        overlay: 'rgba(15, 23, 42, 0.9)',
+        border: '#e2e8f0',
+        borderLight: '#f0f4f8',
+        overlay: 'rgba(30, 90, 150, 0.85)',
+        shadowColor: 'rgba(0, 0, 0, 0.08)',
     },
 
     spacing: {
         xs: 4,
         sm: 8,
         md: 16,
-        lg: 24,
-        xl: 32,
-        xxl: 48,
+        lg: 20,
+        xl: 28,
+        xxl: 40,
     },
 
     borderRadius: {
-        sm: 8,
-        md: 12,
-        lg: 16,
-        xl: 24,
+        sm: 6,
+        md: 10,
+        lg: 14,
+        xl: 20,
+        full: 999,
     },
 
     fontSize: {
-        xs: 12,
-        sm: 14,
-        md: 16,
-        lg: 18,
-        xl: 24,
-        xxl: 32,
+        xs: 11,
+        sm: 13,
+        md: 15,
+        lg: 17,
+        xl: 22,
+        xxl: 28,
+        xxxl: 34,
     },
 
     fontWeight: {
@@ -57,29 +72,37 @@ export const theme = {
         medium: '500',
         semibold: '600',
         bold: '700',
+        extrabold: '800',
     },
 
     shadows: {
-        small: {
+        sm: {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.05,
+            shadowRadius: 2,
+            elevation: 1,
+        },
+        md: {
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 2,
+            shadowOpacity: 0.08,
+            shadowRadius: 6,
+            elevation: 3,
         },
-        medium: {
+        lg: {
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 8,
-            elevation: 4,
+            shadowOpacity: 0.12,
+            shadowRadius: 12,
+            elevation: 6,
         },
-        large: {
+        xl: {
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.2,
-            shadowRadius: 16,
-            elevation: 8,
+            shadowOpacity: 0.16,
+            shadowRadius: 20,
+            elevation: 10,
         },
     },
 };
