@@ -8,8 +8,8 @@ const TIPPER_SHEET_NAME = 'Tipper_Logs';
 const DIESEL_SHEET_NAME = 'Diesel_Logs';
 
 // Current App Version for the Updater
-const LATEST_VERSION = "1.3.0";
-const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.3.0.apk";
+const LATEST_VERSION = "1.4.0";
+const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.4.0.apk";
 
 // Handle GET requests (fetch data)
 function doGet(e) {
@@ -22,7 +22,7 @@ function doGet(e) {
         success: true,
         version: LATEST_VERSION,
         downloadUrl: DOWNLOAD_URL,
-        notes: "Bug fixes, updated app icon, and in-app update feature."
+        notes: "Bug fixes, updated app icon, improved UI, and fixed 'Gadi No' labeling."
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
@@ -119,7 +119,7 @@ function addJCBEntry(data) {
     if (!sheet) {
       const newSheet = ss.insertSheet(JCB_SHEET_NAME);
       newSheet.appendRow([
-        'Godi No', 'Date', 'Driver Name', 'Start Mtr Day', 'Stop Mtr Day',
+        'Gadi No', 'Date', 'Driver Name', 'Start Mtr Day', 'Stop Mtr Day',
         'Work Detail', 'Run Mode', 'Start Mtr', 'Stop Mtr', 'Tip Count',
         'Rate', 'Total Amount', 'Received Amount', 'Due Amount', 'Timestamp'
       ]);
@@ -127,7 +127,7 @@ function addJCBEntry(data) {
     }
     
     sheet.appendRow([
-      data.godiNo,
+      data.gadiNo,
       data.date,
       data.driverName,
       data.startMtrDay || '',

@@ -144,7 +144,20 @@ export const TipperFormScreen = ({ navigation }) => {
                         <CustomButton
                             title="Cancel"
                             variant="secondary"
-                            onPress={() => navigation.goBack()}
+                            onPress={() => {
+                                if (formData.gadiNo || formData.driverName || formData.material) {
+                                    Alert.alert(
+                                        'Discard Entry?',
+                                        'Are you sure you want to discard this entry?',
+                                        [
+                                            { text: 'No', style: 'cancel' },
+                                            { text: 'Yes', onPress: () => navigation.goBack() }
+                                        ]
+                                    );
+                                } else {
+                                    navigation.goBack();
+                                }
+                            }}
                             style={styles.buttonHalf}
                         />
                         <CustomButton

@@ -1,12 +1,12 @@
 export const theme = {
     colors: {
         // Primary Colors
-        primary: '#6366f1',
-        primaryDark: '#4f46e5',
+        primary: '#4f46e5',
+        primaryDark: '#3730a3',
         primaryLight: '#818cf8',
 
         // Accent Colors
-        secondary: '#ec4899',
+        secondary: '#db2777',
         accent: '#f59e0b',
         success: '#10b981',
         danger: '#ef4444',

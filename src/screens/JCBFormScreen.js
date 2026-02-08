@@ -26,7 +26,7 @@ const RUN_MODE_OPTIONS = [
 export const JCBFormScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        godiNo: '',
+        gadiNo: '',
         date: getTodayDate(),
         driverName: '',
         startMtrDay: '',
@@ -71,7 +71,7 @@ export const JCBFormScreen = ({ navigation }) => {
     };
 
     const validateForm = () => {
-        const requiredFields = ['godiNo', 'date', 'driverName', 'rate', 'runMode'];
+        const requiredFields = ['gadiNo', 'date', 'driverName', 'rate', 'runMode'];
 
         // Add mode-specific required fields
         if (formData.runMode === 'Hour') {
@@ -143,8 +143,8 @@ export const JCBFormScreen = ({ navigation }) => {
                     <View style={styles.form}>
                         <CustomInput
                             label="Gadi No"
-                            value={formData.godiNo}
-                            onChangeText={(val) => updateField('godiNo', val)}
+                            value={formData.gadiNo}
+                            onChangeText={(val) => updateField('gadiNo', val)}
                             placeholder="Enter Gadi number"
                             required
                         />
@@ -291,7 +291,20 @@ export const JCBFormScreen = ({ navigation }) => {
                         <CustomButton
                             title="Cancel"
                             variant="secondary"
-                            onPress={() => navigation.goBack()}
+                            onPress={() => {
+                                if (formData.gadiNo || formData.driverName || formData.rate !== '') {
+                                    Alert.alert(
+                                        'Discard Entry?',
+                                        'Are you sure you want to discard this entry?',
+                                        [
+                                            { text: 'No', style: 'cancel' },
+                                            { text: 'Yes', onPress: () => navigation.goBack() }
+                                        ]
+                                    );
+                                } else {
+                                    navigation.goBack();
+                                }
+                            }}
                             style={styles.buttonHalf}
                         />
                         <CustomButton
