@@ -92,6 +92,11 @@ export const DashboardScreen = ({ navigation }) => {
                     <InfoRow label="Total" value={`₹${formatNumber(item.totalAmount)}`} bold />
                     <InfoRow label="Received" value={`₹${formatNumber(item.receivedAmount || 0)}`} bold color={theme.colors.success} />
                     <InfoRow label="Due" value={`₹${formatNumber(item.dueAmount || 0)}`} bold color={theme.colors.danger} />
+                    {item.locationLink ? (
+                        <TouchableOpacity onPress={(e) => { e.stopPropagation(); Linking.openURL(item.locationLink); }}>
+                            <Text style={styles.locationLink}>📍 View Live Location</Text>
+                        </TouchableOpacity>
+                    ) : null}
                     <Text style={styles.editPrompt}>Tap to Edit record ✏️</Text>
                 </View>
             </View>
@@ -126,6 +131,11 @@ export const DashboardScreen = ({ navigation }) => {
                     <InfoRow label="Loading" value={item.loadingPlace || 'N/A'} />
                     <InfoRow label="Unloading" value={item.unloadingPlace || 'N/A'} />
                     <InfoRow label="CFT/Trip" value={item.cftTrip || 'N/A'} />
+                    {item.locationLink ? (
+                        <TouchableOpacity onPress={(e) => { e.stopPropagation(); Linking.openURL(item.locationLink); }}>
+                            <Text style={styles.locationLink}>📍 View Live Location</Text>
+                        </TouchableOpacity>
+                    ) : null}
                     <Text style={styles.editPrompt}>Tap to Edit record ✏️</Text>
                 </View>
             </View>
@@ -156,6 +166,11 @@ export const DashboardScreen = ({ navigation }) => {
                     ) : null}
                     {item.remarks ? (
                         <InfoRow label="Remarks" value={item.remarks} />
+                    ) : null}
+                    {item.locationLink ? (
+                        <TouchableOpacity onPress={(e) => { e.stopPropagation(); Linking.openURL(item.locationLink); }}>
+                            <Text style={styles.locationLink}>📍 View Fill-up Location</Text>
+                        </TouchableOpacity>
                     ) : null}
                 </View>
             </View>
@@ -424,6 +439,13 @@ const styles = StyleSheet.create({
         height: 1,
         backgroundColor: theme.colors.borderLight,
         marginVertical: theme.spacing.md,
+    },
+    locationLink: {
+        fontSize: 12,
+        color: theme.colors.primary,
+        fontWeight: 'bold',
+        marginTop: 8,
+        textDecorationLine: 'underline',
     },
     emptyContainer: {
         alignItems: 'center',
