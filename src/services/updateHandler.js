@@ -3,14 +3,16 @@ import * as IntentLauncher from 'expo-intent-launcher';
 import Constants from 'expo-constants';
 import { Alert, Platform, Linking } from 'react-native';
 
-const CURRENT_VERSION = '1.7.5';
+// Hardcoded version truth for this binary
+const CURRENT_VERSION = '1.7.6';
 
 export const checkForUpdates = async (apiUrl) => {
     try {
-        const response = await fetch(`${apiUrl}?action=getLatestVersion`);
+        // Add cache buster to URL to avoid getting old version info
+        const response = await fetch(`${apiUrl}?action=getLatestVersion&cb=${Date.now()}`);
         const result = await response.json();
 
-        if (result.success && result.version !== CURRENT_VERSION) {
+        if (result.success && isNewerVersion(result.version, CURRENT_VERSION)) {
             return {
                 updateAvailable: true,
                 latestVersion: result.version,
@@ -25,6 +27,24 @@ export const checkForUpdates = async (apiUrl) => {
     }
 };
 
+// Compare version strings (e.g., "1.7.6" vs "1.7.5")
+const isNewerVersion = (latest, current) => {
+    try {
+        const latestParts = latest.split('.').map(num => parseInt(num, 10));
+        const currentParts = current.split('.').map(num => parseInt(num, 10));
+
+        for (let i = 0; i < 3; i++) {
+            const l = latestParts[i] || 0;
+            const c = currentParts[i] || 0;
+            if (l > c) return true;
+            if (l < c) return false;
+        }
+    } catch (e) {
+        return latest !== current; // Fallback
+    }
+    return false;
+};
+
 // Silent Install: Download APK directly to device and open installer
 export const downloadAndInstallUpdate = async (downloadUrl, onProgress) => {
     if (Platform.OS !== 'android') return false;
@@ -33,13 +53,21 @@ export const downloadAndInstallUpdate = async (downloadUrl, onProgress) => {
         const fileName = downloadUrl.split('/').pop() || 'update.apk';
         const fileUri = FileSystem.documentDirectory + fileName;
 
+        // Add cache buster to download URL if it's a raw github link
+        const finalUrl = downloadUrl.includes('raw.githubusercontent.com')
+            ? `${downloadUrl}?cb=${Date.now()}`
+            : downloadUrl;
+
         // Start download with progress tracking
         const downloadResumable = FileSystem.createDownloadResumable(
-            downloadUrl,
+            finalUrl,
             fileUri,
             {},
             (downloadProgress) => {
-                const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+                const total = downloadProgress.totalBytesExpectedToWrite;
+                const progress = total > 0
+                    ? downloadProgress.totalBytesWritten / total
+                    : 0;
                 if (onProgress) {
                     onProgress(progress);
                 }
@@ -76,7 +104,11 @@ export const downloadAndInstallUpdate = async (downloadUrl, onProgress) => {
 // Browser Download: Open the download URL in the browser
 export const openInBrowser = async (downloadUrl) => {
     try {
-        await Linking.openURL(downloadUrl);
+        const finalUrl = downloadUrl.includes('raw.githubusercontent.com')
+            ? `${downloadUrl}?cb=${Date.now()}`
+            : downloadUrl;
+
+        await Linking.openURL(finalUrl);
         return true;
     } catch (error) {
         console.error('Browser download failed:', error);
