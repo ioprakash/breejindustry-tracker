@@ -4,7 +4,7 @@
     "slug": "brij-industry-tracker",
     "version": "1.5.11",
     "orientation": "portrait",
-    "icon": "./assets/final_icon.png",
+    "icon": "./assets/new_request_icon.jpg",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -21,7 +21,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/final_icon.png",
+        "foregroundImage": "./assets/new_request_icon.jpg",
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.brijindustry.tracker",
