@@ -6,8 +6,8 @@ const TIPPER_SHEET_NAME = 'Tipper_Logs';
 const DIESEL_SHEET_NAME = 'Diesel_Logs';
 const EXPENSE_SHEET_NAME = 'Daily_Expenses';
 
-const LATEST_VERSION = '1.7.6';
-const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.7.6.apk';
+const LATEST_VERSION = '1.7.7';
+const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.7.7.apk';
 
 // Role-based Passwords
 const ADMIN_PASSWORD = "667";

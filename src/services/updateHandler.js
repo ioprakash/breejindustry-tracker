@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 import { Alert, Platform, Linking } from 'react-native';
 
 // Hardcoded version truth for this binary
-const CURRENT_VERSION = '1.7.6';
+const CURRENT_VERSION = '1.7.7';
 
 export const checkForUpdates = async (apiUrl) => {
     try {
