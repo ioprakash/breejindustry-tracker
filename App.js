@@ -24,14 +24,18 @@ export default function App() {
 
   React.useEffect(() => {
     const checkUpdate = async () => {
-      // Don't show update on login screen to prevent crash
-      const role = await getData('@user_role');
-      if (!role) return;
+      try {
+        // Don't show update on login screen to prevent crash
+        const role = await getData('@user_role');
+        if (!role) return;
 
-      const result = await checkForUpdates(API_URL);
-      if (result.updateAvailable) {
-        setUpdateData(result);
-        setUpdateVisible(true);
+        const result = await checkForUpdates(API_URL);
+        if (result.updateAvailable) {
+          setUpdateData(result);
+          setUpdateVisible(true);
+        }
+      } catch (err) {
+        console.log('Update check failed quietly:', err);
       }
     };
 

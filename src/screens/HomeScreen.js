@@ -36,27 +36,35 @@ export const HomeScreen = ({ navigation }) => {
     const [userName, setUserName] = useState('');
     const [lastEntries, setLastEntries] = useState({ jcb: null, tipper: null });
     const [todayCounts, setTodayCounts] = useState({ jcbCount: 0, tipperCount: 0 });
+    const isMounted = React.useRef(true);
 
     const checkRole = async () => {
         const role = await getData('@user_role');
         const name = await getData('@user_name');
+
+        if (!isMounted.current) return;
+
         setIsAdmin(role === 'admin');
         setUserName(name || '');
 
         // Load last entries for editing
         const lastJcb = await getData('@last_jcb_entry');
         const lastTipper = await getData('@last_tipper_entry');
-        setLastEntries({ jcb: lastJcb, tipper: lastTipper });
+        if (isMounted.current) {
+            setLastEntries({ jcb: lastJcb, tipper: lastTipper });
+        }
 
         // Calculate today's counts locally for employee
         const jcbData = await getData('@jcb_cache') || [];
         const tipperData = await getData('@tipper_cache') || [];
         const today = new Date().toISOString().split('T')[0];
 
-        setTodayCounts({
-            jcbCount: jcbData.filter(e => e.date === today).length,
-            tipperCount: tipperData.filter(e => e.date === today).length
-        });
+        if (isMounted.current) {
+            setTodayCounts({
+                jcbCount: jcbData.filter(e => e.date === today && (role === 'admin' || e.enteredBy === name)).length,
+                tipperCount: tipperData.filter(e => e.date === today && (role === 'admin' || e.enteredBy === name)).length
+            });
+        }
     };
 
     const handleLogout = async () => {
@@ -69,9 +77,13 @@ export const HomeScreen = ({ navigation }) => {
                     text: 'Logout',
                     style: 'destructive',
                     onPress: async () => {
+                        isMounted.current = false;
                         await saveData('@user_role', null);
                         await saveData('@user_name', null);
-                        navigation.replace('Login');
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'Login' }],
+                        });
                     }
                 }
             ]
@@ -82,15 +94,21 @@ export const HomeScreen = ({ navigation }) => {
         try {
             await processSyncQueue();
             const data = await getQuickStats();
-            setStats(data);
+            if (isMounted.current) {
+                setStats(data);
+            }
         } catch (error) {
             console.error('Error loading stats:', error);
         }
     };
 
     useEffect(() => {
+        isMounted.current = true;
         checkRole();
         loadStats();
+        return () => {
+            isMounted.current = false;
+        };
     }, []);
 
     const onRefresh = async () => {
