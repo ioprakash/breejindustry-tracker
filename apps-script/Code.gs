@@ -8,8 +8,8 @@ const TIPPER_SHEET_NAME = 'Tipper_Logs';
 const DIESEL_SHEET_NAME = 'Diesel_Logs';
 
 // Current App Version for the Updater
-const LATEST_VERSION = "1.5.6";
-const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.5.6.apk";
+const LATEST_VERSION = "1.5.7";
+const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.5.7.apk";
 
 // Handle GET requests (fetch data)
 function doGet(e) {
@@ -22,7 +22,7 @@ function doGet(e) {
         success: true,
         version: LATEST_VERSION,
         downloadUrl: DOWNLOAD_URL,
-        notes: "Fixed browser download update link. Previous: Updated app icon."
+        notes: "Fixed app icon issue by cleaning resource cache. Browser download also fixed."
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
