@@ -15,13 +15,34 @@ import { CustomInput } from '../components/CustomInput';
 import { CustomButton } from '../components/CustomButton';
 import { theme } from '../styles/theme';
 import { loginUser } from '../services/api';
-import { saveData } from '../services/storage';
+import { saveData, getData } from '../services/storage';
+import { checkForUpdates } from '../services/updateHandler';
 
 const { width } = Dimensions.get('window');
 
 export const LoginScreen = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [updateAvailable, setUpdateAvailable] = useState(false);
+
+    React.useEffect(() => {
+        const checkSessionAndUpdates = async () => {
+            // 1. Check if already logged in
+            const role = await getData('@user_role');
+            if (role) {
+                navigation.replace('Home');
+                return;
+            }
+
+            // 2. Check for updates on login screen
+            const API_URL = 'https://script.google.com/macros/s/AKfycbxubMOm8TjBOzgOzhazJ2-heLKddQpVI9-kK6Tea1zZlRQlIeI1h0Z8VDXUZarh5sOe-Q/exec';
+            const update = await checkForUpdates(API_URL);
+            if (update.updateAvailable) {
+                setUpdateAvailable(true);
+            }
+        };
+        checkSessionAndUpdates();
+    }, []);
 
     const handleLogin = async () => {
         if (!password) {
@@ -50,7 +71,7 @@ export const LoginScreen = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <KeyboardAvoidingView 
+            <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardView}
             >
@@ -92,7 +113,16 @@ export const LoginScreen = ({ navigation }) => {
                                 icon="🚀"
                                 style={styles.loginBtn}
                             />
-                            
+
+                            {updateAvailable && (
+                                <TouchableOpacity
+                                    style={styles.updateBadge}
+                                    onPress={() => Alert.alert('Update Available', 'A newer version of the app is available. Please log in to update or check the home screen.')}
+                                >
+                                    <Text style={styles.updateBadgeText}>✨ New Version Available!</Text>
+                                </TouchableOpacity>
+                            )}
+
                             <Text style={styles.footerText}>
                                 Restricted access for authorized personnel only
                             </Text>
@@ -184,5 +214,19 @@ const styles = StyleSheet.create({
         color: theme.colors.textMuted,
         fontSize: 12,
         marginTop: theme.spacing.xl,
+    },
+    updateBadge: {
+        marginTop: theme.spacing.lg,
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        padding: 10,
+        borderRadius: theme.borderRadius.md,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(16, 185, 129, 0.2)',
+    },
+    updateBadgeText: {
+        color: theme.colors.success,
+        fontSize: 13,
+        fontWeight: 'bold',
     }
 });

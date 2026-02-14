@@ -17,7 +17,8 @@ import { StatCard } from '../components/StatCard';
 import { getQuickStats, processSyncQueue } from '../services/api';
 import { formatNumber } from '../utils/calculations';
 import { checkForUpdates } from '../utils/updateChecker';
-import { getData } from '../services/storage';
+import { getData, saveData } from '../services/storage';
+import { Alert } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -36,6 +37,24 @@ export const HomeScreen = ({ navigation }) => {
     const checkRole = async () => {
         const role = await getData('@user_role');
         setIsAdmin(role === 'admin');
+    };
+
+    const handleLogout = async () => {
+        Alert.alert(
+            'Logout',
+            'Are you sure you want to logout?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Logout',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await saveData('@user_role', null);
+                        navigation.replace('Login');
+                    }
+                }
+            ]
+        );
     };
 
     const loadStats = async () => {
@@ -99,6 +118,11 @@ export const HomeScreen = ({ navigation }) => {
                 >
                     <View style={styles.headerDecor1} />
                     <View style={styles.headerDecor2} />
+
+                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                        <Text style={styles.logoutText}>🚪 Logout</Text>
+                    </TouchableOpacity>
+
                     <Image
                         source={require('../../assets/brij-logo.png')}
                         style={styles.logo}
@@ -227,6 +251,21 @@ const styles = StyleSheet.create({
         height: 80,
         borderRadius: 40,
         backgroundColor: 'rgba(255,255,255,0.04)',
+    },
+    logoutButton: {
+        position: 'absolute',
+        top: 40,
+        right: 20,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: theme.borderRadius.full,
+        zIndex: 10,
+    },
+    logoutText: {
+        color: '#fff',
+        fontSize: theme.fontSize.xs,
+        fontWeight: theme.fontWeight.bold,
     },
     logo: {
         width: 240,
