@@ -16,7 +16,6 @@ import { theme } from '../styles/theme';
 import { StatCard } from '../components/StatCard';
 import { getQuickStats, processSyncQueue } from '../services/api';
 import { formatNumber } from '../utils/calculations';
-import { formatNumber } from '../utils/calculations';
 import { getData, saveData } from '../services/storage';
 import { Alert } from 'react-native';
 
@@ -281,7 +280,7 @@ export const HomeScreen = ({ navigation }) => {
 
                 {/* Version Footer */}
                 <Text style={styles.versionText}>
-                    Brij Industry Tracker v{Constants.expoConfig?.version || '1.5.0'}
+                    Brij Industry Tracker v{Constants.expoConfig?.version || '1.7.2'}
                 </Text>
             </ScrollView>
         </SafeAreaView>

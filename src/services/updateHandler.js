@@ -3,7 +3,7 @@ import * as IntentLauncher from 'expo-intent-launcher';
 import Constants from 'expo-constants';
 import { Alert, Platform, Linking } from 'react-native';
 
-const CURRENT_VERSION = Constants.expoConfig.version;
+const CURRENT_VERSION = '1.7.2';
 
 export const checkForUpdates = async (apiUrl) => {
     try {
