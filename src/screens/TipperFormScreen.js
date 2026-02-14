@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { CustomInput } from '../components/CustomInput';
 import { CustomButton } from '../components/CustomButton';
+import { PhotoPicker } from '../components/PhotoPicker';
 import { theme } from '../styles/theme';
 import { submitTipperEntry } from '../services/api';
 import { getTodayDate } from '../utils/calculations';
@@ -35,6 +36,7 @@ export const TipperFormScreen = ({ navigation }) => {
         loadingPlace: '',
         unloadingPlace: '',
         cftTrip: '',
+        photo: null,
     });
 
     const updateField = (field, value) => {
@@ -169,6 +171,16 @@ export const TipperFormScreen = ({ navigation }) => {
                             onChangeText={(val) => updateField('cftTrip', val)}
                             placeholder="0"
                             keyboardType="numeric"
+                        />
+                    </View>
+
+                    {/* Attachments Section */}
+                    <SectionHeader icon="📎" title="Attachments" />
+                    <View style={styles.sectionCard}>
+                        <PhotoPicker
+                            photo={formData.photo}
+                            onPhotoSelected={(uri) => updateField('photo', uri)}
+                            label="Attach Photo (Optional)"
                         />
                     </View>
 

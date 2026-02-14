@@ -8,8 +8,8 @@ const TIPPER_SHEET_NAME = 'Tipper_Logs';
 const DIESEL_SHEET_NAME = 'Diesel_Logs';
 
 // Current App Version for the Updater
-const LATEST_VERSION = "1.5.1";
-const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/blob/main/brij-industry-tracker-v1.5.1.apk?raw=true";
+const LATEST_VERSION = "1.5.2";
+const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/blob/main/brij-industry-tracker-v1.5.2.apk?raw=true";
 
 // Handle GET requests (fetch data)
 function doGet(e) {
@@ -22,7 +22,7 @@ function doGet(e) {
         success: true,
         version: LATEST_VERSION,
         downloadUrl: DOWNLOAD_URL,
-        notes: "UI refresh with premium design, customer name & number tracking in JCB/Tipper forms."
+        notes: "Photo attachments in all forms, petrol pump name in diesel, browser-based update download."
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
@@ -81,21 +81,22 @@ function addDieselEntry(data) {
     if (!sheet) {
       const newSheet = ss.insertSheet(DIESEL_SHEET_NAME);
       newSheet.appendRow([
-        'Vehicle No', 'Date', 'Diesel (Ltr)', 'Cost', 'Meter Reading', 
-        'Paid By', 'Remarks', 'Receipt Photo', 'Timestamp'
+        'Vehicle No', 'Date', 'Diesel (Ltr)', 'Cost', 'Petrol Pump Name',
+        'Meter Reading', 'Paid By', 'Remarks', 'Receipt Photo', 'Timestamp'
       ]);
       return addDieselEntry(data);
     }
     
     sheet.appendRow([
-      data.vehicleNo,
+      data.vehicleNo || data.gadiNo,
       data.date,
       data.dieselLtr,
       data.dieselCost,
-      data.meterReading,
-      data.paidBy,
+      data.petrolPumpName || '',
+      data.meterReading || data.dieselMtr || '',
+      data.paidBy || data.dieselPaidBy || '',
       data.remarks || '',
-      data.receiptPhoto || '',
+      data.receiptPhoto || data.photo || '',
       new Date().toISOString()
     ]);
     
@@ -122,7 +123,7 @@ function addJCBEntry(data) {
         'Gadi No', 'Date', 'Driver Name', 'Customer Name', 'Customer Number',
         'Start Mtr Day', 'Stop Mtr Day',
         'Work Detail', 'Run Mode', 'Start Mtr', 'Stop Mtr', 'Tip Count',
-        'Rate', 'Total Amount', 'Received Amount', 'Due Amount', 'Timestamp'
+        'Rate', 'Total Amount', 'Received Amount', 'Due Amount', 'Photo', 'Timestamp'
       ]);
       return addJCBEntry(data);
     }
@@ -144,6 +145,7 @@ function addJCBEntry(data) {
       data.totalAmount,
       data.receivedAmount || 0,
       data.dueAmount || 0,
+      data.photo || '',
       new Date().toISOString()
     ]);
     
@@ -169,7 +171,7 @@ function addTipperEntry(data) {
       newSheet.appendRow([
         'Gadi No', 'Driver Name', 'Date', 'Customer Name', 'Customer Number',
         'Material', 'Loading Place',
-        'Unloading Place', 'CFT/Trip', 'Diesel Photo', 'Timestamp'
+        'Unloading Place', 'CFT/Trip', 'Photo', 'Timestamp'
       ]);
       return addTipperEntry(data);
     }
@@ -184,7 +186,7 @@ function addTipperEntry(data) {
       data.loadingPlace || '',
       data.unloadingPlace || '',
       data.cftTrip || '',
-      data.dieselPhoto || '',
+      data.photo || data.dieselPhoto || '',
       new Date().toISOString()
     ]);
     

@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { theme } from '../styles/theme';
 import { compressImage } from '../utils/imageCompressor';
 
-export const PhotoPicker = ({ photo, onPhotoSelected }) => {
+export const PhotoPicker = ({ photo, onPhotoSelected, label = 'Attach Photo (Optional)' }) => {
     const requestPermissions = async () => {
         const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
         const mediaPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -71,7 +71,7 @@ export const PhotoPicker = ({ photo, onPhotoSelected }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>Diesel Receipt Photo</Text>
+            <Text style={styles.label}>{label}</Text>
             <TouchableOpacity
                 style={[styles.photoArea, photo && styles.photoAreaFilled]}
                 onPress={showOptions}

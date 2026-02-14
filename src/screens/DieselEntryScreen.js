@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { CustomInput } from '../components/CustomInput';
 import { CustomButton } from '../components/CustomButton';
+import { PhotoPicker } from '../components/PhotoPicker';
 import { theme } from '../styles/theme';
 import { submitDieselEntry } from '../services/api';
 import { getTodayDate } from '../utils/calculations';
@@ -31,8 +32,10 @@ export const DieselEntryScreen = ({ navigation }) => {
         dieselLtr: '',
         dieselCost: '',
         dieselMtr: '',
+        petrolPumpName: '',
         dieselPaidBy: '',
         remarks: '',
+        photo: null,
     });
 
     const updateField = (field, value) => {
@@ -137,6 +140,13 @@ export const DieselEntryScreen = ({ navigation }) => {
                         </View>
 
                         <CustomInput
+                            label="Petrol Pump Name"
+                            value={formData.petrolPumpName}
+                            onChangeText={(val) => updateField('petrolPumpName', val)}
+                            placeholder="Name of petrol pump"
+                        />
+
+                        <CustomInput
                             label="Meter Reading"
                             value={formData.dieselMtr}
                             onChangeText={(val) => updateField('dieselMtr', val)}
@@ -157,6 +167,16 @@ export const DieselEntryScreen = ({ navigation }) => {
                             onChangeText={(val) => updateField('remarks', val)}
                             placeholder="Additional notes"
                             multiline
+                        />
+                    </View>
+
+                    {/* Attachments Section */}
+                    <SectionHeader icon="📎" title="Attachments" />
+                    <View style={styles.sectionCard}>
+                        <PhotoPicker
+                            photo={formData.photo}
+                            onPhotoSelected={(uri) => updateField('photo', uri)}
+                            label="Diesel Receipt Photo (Optional)"
                         />
                     </View>
 

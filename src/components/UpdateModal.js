@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     Modal,
     View,
@@ -6,25 +6,17 @@ import {
     StyleSheet,
     TouchableOpacity,
     Dimensions,
+    Linking,
 } from 'react-native';
 import { theme } from '../styles/theme';
-import { downloadAndInstallUpdate } from '../services/updateHandler';
 
 const { width } = Dimensions.get('window');
 
 export const UpdateModal = ({ visible, updateData, onDismiss }) => {
-    const [downloading, setDownloading] = useState(false);
-    const [progress, setProgress] = useState(0);
 
-    const handleUpdate = async () => {
-        setDownloading(true);
-        const success = await downloadAndInstallUpdate(updateData.downloadUrl, (p) => {
-            setProgress(p);
-        });
-
-        if (!success) {
-            setDownloading(false);
-            setProgress(0);
+    const handleDownloadInBrowser = () => {
+        if (updateData?.downloadUrl) {
+            Linking.openURL(updateData.downloadUrl);
         }
     };
 
@@ -47,36 +39,24 @@ export const UpdateModal = ({ visible, updateData, onDismiss }) => {
                         <Text style={styles.notesText}>{updateData.releaseNotes}</Text>
                     </View>
 
-                    {downloading ? (
-                        <View style={styles.progressContainer}>
-                            <Text style={styles.progressText}>
-                                Downloading... {Math.round(progress * 100)}%
-                            </Text>
-                            <View style={styles.progressBarWrapper}>
-                                <View
-                                    style={[
-                                        styles.progressBarFill,
-                                        { width: `${Math.max(0, Math.min(1, progress)) * 100}%` }
-                                    ]}
-                                />
-                            </View>
-                        </View>
-                    ) : (
-                        <View style={styles.actions}>
-                            <TouchableOpacity
-                                style={[styles.button, styles.skipButton]}
-                                onPress={onDismiss}
-                            >
-                                <Text style={styles.skipText}>Skip for now</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.button, styles.updateButton]}
-                                onPress={handleUpdate}
-                            >
-                                <Text style={styles.updateText}>Update Now</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
+                    <View style={styles.actions}>
+                        <TouchableOpacity
+                            style={[styles.button, styles.skipButton]}
+                            onPress={onDismiss}
+                        >
+                            <Text style={styles.skipText}>Skip for now</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.button, styles.updateButton]}
+                            onPress={handleDownloadInBrowser}
+                        >
+                            <Text style={styles.updateText}>⬇ Download</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <Text style={styles.hint}>
+                        Opens in browser. After download, tap the APK to install.
+                    </Text>
                 </View>
             </View>
         </Modal>
@@ -114,7 +94,7 @@ const styles = StyleSheet.create({
         backgroundColor: theme.colors.background,
         padding: theme.spacing.md,
         borderRadius: theme.borderRadius.md,
-        marginBottom: theme.spacing.xl,
+        marginBottom: theme.spacing.lg,
     },
     notesTitle: {
         fontSize: theme.fontSize.sm,
@@ -127,30 +107,10 @@ const styles = StyleSheet.create({
         color: theme.colors.textSecondary,
         lineHeight: 18,
     },
-    progressContainer: {
-        marginTop: theme.spacing.md,
-        paddingHorizontal: 5,
-    },
-    progressText: {
-        fontSize: theme.fontSize.sm,
-        color: theme.colors.textSecondary,
-        textAlign: 'center',
-        marginBottom: theme.spacing.md,
-    },
-    progressBarWrapper: {
-        height: 10,
-        backgroundColor: theme.colors.background,
-        borderRadius: 5,
-        overflow: 'hidden',
-    },
-    progressBarFill: {
-        height: '100%',
-        backgroundColor: theme.colors.primary,
-        borderRadius: 5,
-    },
     actions: {
         flexDirection: 'row',
         gap: theme.spacing.md,
+        marginBottom: theme.spacing.sm,
     },
     button: {
         flex: 1,
@@ -173,5 +133,13 @@ const styles = StyleSheet.create({
     updateText: {
         color: '#fff',
         fontWeight: theme.fontWeight.bold,
+    },
+    hint: {
+        fontSize: theme.fontSize.xs,
+        color: theme.colors.textSecondary,
+        textAlign: 'center',
+        marginTop: theme.spacing.xs,
+        lineHeight: 16,
+        fontStyle: 'italic',
     },
 });

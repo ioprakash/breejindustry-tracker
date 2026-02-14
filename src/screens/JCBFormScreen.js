@@ -12,6 +12,7 @@ import {
 import { CustomInput } from '../components/CustomInput';
 import { CustomButton } from '../components/CustomButton';
 import { CustomDropdown } from '../components/CustomDropdown';
+import { PhotoPicker } from '../components/PhotoPicker';
 import { theme } from '../styles/theme';
 import { submitJCBEntry } from '../services/api';
 import { calculateJCBTotal, calculateDueAmount, getTodayDate } from '../utils/calculations';
@@ -51,6 +52,7 @@ export const JCBFormScreen = ({ navigation }) => {
         totalAmount: '0',
         receivedAmount: '',
         dueAmount: '0',
+        photo: null,
     });
 
     const updateField = (field, value) => {
@@ -320,6 +322,16 @@ export const JCBFormScreen = ({ navigation }) => {
                             value={formData.dueAmount}
                             editable={false}
                             keyboardType="numeric"
+                        />
+                    </View>
+
+                    {/* Attachments Section */}
+                    <SectionHeader icon="📎" title="Attachments" />
+                    <View style={styles.sectionCard}>
+                        <PhotoPicker
+                            photo={formData.photo}
+                            onPhotoSelected={(uri) => updateField('photo', uri)}
+                            label="Attach Photo (Optional)"
                         />
                     </View>
 
