@@ -13,6 +13,7 @@ export const CustomInput = ({
     editable = true,
     error = false,
     icon,
+    secureTextEntry = false,
 }) => {
     const [isFocused, setIsFocused] = useState(false);
 
@@ -44,6 +45,7 @@ export const CustomInput = ({
                     keyboardType={keyboardType}
                     multiline={multiline}
                     editable={editable}
+                    secureTextEntry={secureTextEntry}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                 />

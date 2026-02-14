@@ -17,6 +17,7 @@ import { StatCard } from '../components/StatCard';
 import { getQuickStats, processSyncQueue } from '../services/api';
 import { formatNumber } from '../utils/calculations';
 import { checkForUpdates } from '../utils/updateChecker';
+import { getData } from '../services/storage';
 
 const { width } = Dimensions.get('window');
 
@@ -30,6 +31,12 @@ const getGreeting = () => {
 export const HomeScreen = ({ navigation }) => {
     const [stats, setStats] = useState({ jcbCount: 0, tipperCount: 0, totalDue: 0 });
     const [refreshing, setRefreshing] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    const checkRole = async () => {
+        const role = await getData('@user_role');
+        setIsAdmin(role === 'admin');
+    };
 
     const loadStats = async () => {
         try {
@@ -42,6 +49,7 @@ export const HomeScreen = ({ navigation }) => {
     };
 
     useEffect(() => {
+        checkRole();
         loadStats();
         checkForUpdates();
     }, []);
@@ -129,14 +137,16 @@ export const HomeScreen = ({ navigation }) => {
                         onPress={() => navigation.navigate('TipperForm')}
                         isHalf
                     />
-                    <MenuCard
-                        title="Dashboard"
-                        subtitle="View entries"
-                        icon="📊"
-                        colors={theme.gradients.accent}
-                        onPress={() => navigation.navigate('Dashboard')}
-                        isHalf
-                    />
+                    {isAdmin && (
+                        <MenuCard
+                            title="Dashboard"
+                            subtitle="View entries"
+                            icon="📊"
+                            colors={theme.gradients.accent}
+                            onPress={() => navigation.navigate('Dashboard')}
+                            isHalf
+                        />
+                    )}
                     <MenuCard
                         title="Diesel"
                         subtitle="Log fuel"
@@ -147,28 +157,32 @@ export const HomeScreen = ({ navigation }) => {
                     />
                 </View>
 
-                {/* Quick Stats */}
-                <Text style={styles.sectionTitle}>Overview</Text>
-                <View style={styles.statsGrid}>
-                    <StatCard
-                        icon="🚜"
-                        value={stats.jcbCount || 0}
-                        label="JCB Entries"
-                        colors={theme.gradients.primary}
-                    />
-                    <StatCard
-                        icon="🚚"
-                        value={stats.tipperCount || 0}
-                        label="Tipper Trips"
-                        colors={theme.gradients.secondary}
-                    />
-                    <StatCard
-                        icon="💰"
-                        value={`₹${formatNumber(stats.totalDue || 0)}`}
-                        label="Total Due"
-                        colors={['#ef4444', '#dc2626']}
-                    />
-                </View>
+                {/* Quick Stats - Admin Only */}
+                {isAdmin && (
+                    <>
+                        <Text style={styles.sectionTitle}>Overview</Text>
+                        <View style={styles.statsGrid}>
+                            <StatCard
+                                icon="🚜"
+                                value={stats.jcbCount || 0}
+                                label="JCB Entries"
+                                colors={theme.gradients.primary}
+                            />
+                            <StatCard
+                                icon="🚚"
+                                value={stats.tipperCount || 0}
+                                label="Tipper Trips"
+                                colors={theme.gradients.secondary}
+                            />
+                            <StatCard
+                                icon="💰"
+                                value={`₹${formatNumber(stats.totalDue || 0)}`}
+                                label="Total Due"
+                                colors={['#ef4444', '#dc2626']}
+                            />
+                        </View>
+                    </>
+                )}
 
                 {/* Version Footer */}
                 <Text style={styles.versionText}>

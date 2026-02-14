@@ -7,6 +7,7 @@ import { JCBFormScreen } from './src/screens/JCBFormScreen';
 import { TipperFormScreen } from './src/screens/TipperFormScreen';
 import { DieselEntryScreen } from './src/screens/DieselEntryScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
+import { LoginScreen } from './src/screens/LoginScreen';
 import { theme } from './src/styles/theme';
 import { UpdateModal } from './src/components/UpdateModal';
 import { checkForUpdates } from './src/services/updateHandler';
@@ -41,6 +42,7 @@ export default function App() {
       />
       <NavigationContainer>
         <Stack.Navigator
+          initialRouteName="Login"
           screenOptions={{
             headerStyle: {
               backgroundColor: theme.colors.card,
@@ -54,6 +56,11 @@ export default function App() {
             },
           }}
         >
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="Home"
             component={HomeScreen}

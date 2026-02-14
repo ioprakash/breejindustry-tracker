@@ -11,6 +11,10 @@ const DIESEL_SHEET_NAME = 'Diesel_Logs';
 const LATEST_VERSION = "1.5.11";
 const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.5.11.apk";
 
+// Simple Passwords for Role-based access
+const ADMIN_PASSWORD = "667";  // Password for Owner/Admin
+const STAFF_PASSWORD = "123";  // Password for Employees
+
 // Handle GET requests (fetch data)
 function doGet(e) {
   try {
@@ -24,6 +28,18 @@ function doGet(e) {
         downloadUrl: DOWNLOAD_URL,
         notes: "Updated app icon with user-provided image (final_icon.png)."
       })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Login Action
+    if (action === 'login') {
+      const pass = e.parameter.password;
+      if (pass === ADMIN_PASSWORD) {
+        return ContentService.createTextOutput(JSON.stringify({ success: true, role: 'admin' })).setMimeType(ContentService.MimeType.JSON);
+      } else if (pass === STAFF_PASSWORD) {
+        return ContentService.createTextOutput(JSON.stringify({ success: true, role: 'staff' })).setMimeType(ContentService.MimeType.JSON);
+      } else {
+        return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'Auth failed' })).setMimeType(ContentService.MimeType.JSON);
+      }
     }
     
     if (action === 'getJCB') {

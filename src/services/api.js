@@ -17,8 +17,19 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxubMOm8TjBOzgOzhazJ2-h
 
 // Check if online
 const isOnline = () => {
-    // Note: In React Native, you can use @react-native-community/netinfo for better detection
-    return true; // Simplified for now
+    return true;
+};
+
+// Login User
+export const loginUser = async (password) => {
+    try {
+        const response = await fetch(`${API_URL}?action=login&password=${encodeURIComponent(password)}`);
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Login error:', error);
+        throw error;
+    }
 };
 
 // Submit JCB Entry
