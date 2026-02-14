@@ -23,12 +23,22 @@ const RUN_MODE_OPTIONS = [
     { label: 'Other', value: 'Other' },
 ];
 
+const SectionHeader = ({ icon, title }) => (
+    <View style={styles.sectionHeader}>
+        <View style={styles.sectionAccent} />
+        <Text style={styles.sectionIcon}>{icon}</Text>
+        <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+);
+
 export const JCBFormScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         gadiNo: '',
         date: getTodayDate(),
         driverName: '',
+        customerName: '',
+        customerNumber: '',
         startMtrDay: '',
         stopMtrDay: '',
         workDetail: '',
@@ -132,15 +142,16 @@ export const JCBFormScreen = ({ navigation }) => {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardAvoid}
             >
-                <ScrollView contentContainerStyle={styles.scrollContent}>
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     {/* Header */}
                     <View style={styles.header}>
                         <Text style={styles.title}>🚜 JCB Entry Form</Text>
                         <Text style={styles.subtitle}>Log JCB work details and payments</Text>
                     </View>
 
-                    {/* Form Fields */}
-                    <View style={styles.form}>
+                    {/* Vehicle Info Section */}
+                    <SectionHeader icon="🚗" title="Vehicle Information" />
+                    <View style={styles.sectionCard}>
                         <CustomInput
                             label="Gadi No"
                             value={formData.gadiNo}
@@ -185,7 +196,29 @@ export const JCBFormScreen = ({ navigation }) => {
                                 />
                             </View>
                         </View>
+                    </View>
 
+                    {/* Customer Info Section */}
+                    <SectionHeader icon="👤" title="Customer Information" />
+                    <View style={styles.sectionCard}>
+                        <CustomInput
+                            label="Customer Name"
+                            value={formData.customerName}
+                            onChangeText={(val) => updateField('customerName', val)}
+                            placeholder="Enter customer name"
+                        />
+                        <CustomInput
+                            label="Customer Number"
+                            value={formData.customerNumber}
+                            onChangeText={(val) => updateField('customerNumber', val)}
+                            placeholder="Enter phone number"
+                            keyboardType="phone-pad"
+                        />
+                    </View>
+
+                    {/* Work Details Section */}
+                    <SectionHeader icon="⚙️" title="Work Details" />
+                    <View style={styles.sectionCard}>
                         <CustomInput
                             label="Work Detail"
                             value={formData.workDetail}
@@ -262,7 +295,11 @@ export const JCBFormScreen = ({ navigation }) => {
                                 />
                             </View>
                         </View>
+                    </View>
 
+                    {/* Payment Section */}
+                    <SectionHeader icon="💰" title="Payment Details" />
+                    <View style={styles.sectionCard}>
                         <CustomInput
                             label="Total Amount"
                             value={formData.totalAmount}
@@ -309,6 +346,7 @@ export const JCBFormScreen = ({ navigation }) => {
                         />
                         <CustomButton
                             title={loading ? 'Submitting...' : 'Submit Entry'}
+                            icon="✓"
                             onPress={handleSubmit}
                             loading={loading}
                             style={styles.buttonHalf}
@@ -330,9 +368,10 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: theme.spacing.lg,
+        paddingBottom: theme.spacing.xxl + 20,
     },
     header: {
-        marginBottom: theme.spacing.xl,
+        marginBottom: theme.spacing.lg,
     },
     title: {
         fontSize: theme.fontSize.xxl,
@@ -344,8 +383,36 @@ const styles = StyleSheet.create({
         fontSize: theme.fontSize.md,
         color: theme.colors.textSecondary,
     },
-    form: {
-        marginBottom: theme.spacing.xl,
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: theme.spacing.lg,
+        marginBottom: theme.spacing.md,
+    },
+    sectionAccent: {
+        width: 4,
+        height: 22,
+        borderRadius: 2,
+        backgroundColor: theme.colors.primary,
+        marginRight: theme.spacing.sm,
+    },
+    sectionIcon: {
+        fontSize: 18,
+        marginRight: 6,
+    },
+    sectionTitle: {
+        fontSize: theme.fontSize.md,
+        fontWeight: theme.fontWeight.bold,
+        color: theme.colors.text,
+        letterSpacing: 0.3,
+    },
+    sectionCard: {
+        backgroundColor: theme.colors.card,
+        borderRadius: theme.borderRadius.lg,
+        padding: theme.spacing.lg,
+        borderWidth: 1,
+        borderColor: theme.colors.borderLight,
+        ...theme.shadows.sm,
     },
     row: {
         flexDirection: 'row',
@@ -354,16 +421,10 @@ const styles = StyleSheet.create({
     halfWidth: {
         flex: 1,
     },
-    sectionTitle: {
-        fontSize: theme.fontSize.lg,
-        fontWeight: theme.fontWeight.semibold,
-        color: theme.colors.text,
-        marginTop: theme.spacing.md,
-        marginBottom: theme.spacing.sm,
-    },
     actions: {
         flexDirection: 'row',
         gap: theme.spacing.md,
+        marginTop: theme.spacing.xl,
         marginBottom: theme.spacing.xl,
     },
     buttonHalf: {

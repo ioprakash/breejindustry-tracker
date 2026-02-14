@@ -2,13 +2,15 @@ export const theme = {
     colors: {
         // Primary Colors - Matching Brij Logo Deep Blue
         primary: '#1e5a96',
-        primaryDark: '#164570',
+        primaryDark: '#0d3b6b',
         primaryLight: '#42a5f5',
+        primarySoft: 'rgba(30, 90, 150, 0.08)',
 
         // Secondary Colors - Vibrant Orange from "Brij" text
         secondary: '#ff7b00',
         secondaryDark: '#e06900',
         secondaryLight: '#ffa040',
+        secondarySoft: 'rgba(255, 123, 0, 0.08)',
 
         // Accent Colors - Fresh Green from logo graph
         accent: '#4caf50',
@@ -16,28 +18,39 @@ export const theme = {
         accentLight: '#81c784',
 
         // Functional Colors
-        success: '#4caf50',
-        danger: '#f44336',
-        warning: '#ffc107',
-        info: '#42a5f5',
+        success: '#10b981',
+        danger: '#ef4444',
+        warning: '#f59e0b',
+        info: '#3b82f6',
 
-        // Background - Modern light theme matching logo aesthetics
-        background: '#f5f7fa',
-        backgroundDark: '#e8ecf1',
+        // Background - Modern light theme
+        background: '#f0f4f8',
+        backgroundDark: '#e2e8f0',
         card: '#ffffff',
+        cardLight: '#f8fafc',
         cardHover: '#fafbfc',
 
         // Text - Professional hierarchy
-        text: '#1a202c',
-        textSecondary: '#4a5568',
-        textMuted: '#718096',
-        textLight: '#a0aec0',
+        text: '#0f172a',
+        textSecondary: '#475569',
+        textMuted: '#94a3b8',
+        textLight: '#cbd5e1',
 
         // Utility
         border: '#e2e8f0',
-        borderLight: '#f0f4f8',
-        overlay: 'rgba(30, 90, 150, 0.85)',
+        borderLight: '#f1f5f9',
+        borderFocus: '#1e5a96',
+        overlay: 'rgba(15, 23, 42, 0.6)',
         shadowColor: 'rgba(0, 0, 0, 0.08)',
+    },
+
+    gradients: {
+        primary: ['#1e5a96', '#0d3b6b'],
+        secondary: ['#ff7b00', '#e06900'],
+        accent: ['#10b981', '#059669'],
+        warning: ['#f59e0b', '#d97706'],
+        header: ['#0d3b6b', '#1e5a96', '#2563eb'],
+        card: ['#ffffff', '#f8fafc'],
     },
 
     spacing: {
@@ -50,10 +63,11 @@ export const theme = {
     },
 
     borderRadius: {
-        sm: 6,
-        md: 10,
-        lg: 14,
-        xl: 20,
+        xs: 4,
+        sm: 8,
+        md: 12,
+        lg: 16,
+        xl: 24,
         full: 999,
     },
 
@@ -79,29 +93,29 @@ export const theme = {
         sm: {
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 2,
+            shadowOpacity: 0.04,
+            shadowRadius: 3,
             elevation: 1,
         },
         md: {
             shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
+            shadowOffset: { width: 0, height: 3 },
             shadowOpacity: 0.08,
-            shadowRadius: 6,
+            shadowRadius: 8,
             elevation: 3,
         },
         lg: {
             shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
+            shadowOffset: { width: 0, height: 6 },
             shadowOpacity: 0.12,
-            shadowRadius: 12,
+            shadowRadius: 16,
             elevation: 6,
         },
         xl: {
             shadowColor: '#000',
-            shadowOffset: { width: 0, height: 8 },
+            shadowOffset: { width: 0, height: 10 },
             shadowOpacity: 0.16,
-            shadowRadius: 20,
+            shadowRadius: 24,
             elevation: 10,
         },
     },

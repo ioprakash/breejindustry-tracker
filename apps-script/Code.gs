@@ -8,8 +8,8 @@ const TIPPER_SHEET_NAME = 'Tipper_Logs';
 const DIESEL_SHEET_NAME = 'Diesel_Logs';
 
 // Current App Version for the Updater
-const LATEST_VERSION = "1.4.5";
-const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.4.5.apk";
+const LATEST_VERSION = "1.5.0";
+const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.5.0.apk";
 
 // Handle GET requests (fetch data)
 function doGet(e) {
@@ -22,7 +22,7 @@ function doGet(e) {
         success: true,
         version: LATEST_VERSION,
         downloadUrl: DOWNLOAD_URL,
-        notes: "Bug fixes, updated app icon, improved UI, and fixed 'Gadi No' labeling."
+        notes: "UI refresh with premium design, customer name & number tracking in JCB/Tipper forms."
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
@@ -119,7 +119,8 @@ function addJCBEntry(data) {
     if (!sheet) {
       const newSheet = ss.insertSheet(JCB_SHEET_NAME);
       newSheet.appendRow([
-        'Gadi No', 'Date', 'Driver Name', 'Start Mtr Day', 'Stop Mtr Day',
+        'Gadi No', 'Date', 'Driver Name', 'Customer Name', 'Customer Number',
+        'Start Mtr Day', 'Stop Mtr Day',
         'Work Detail', 'Run Mode', 'Start Mtr', 'Stop Mtr', 'Tip Count',
         'Rate', 'Total Amount', 'Received Amount', 'Due Amount', 'Timestamp'
       ]);
@@ -130,6 +131,8 @@ function addJCBEntry(data) {
       data.gadiNo,
       data.date,
       data.driverName,
+      data.customerName || '',
+      data.customerNumber || '',
       data.startMtrDay || '',
       data.stopMtrDay || '',
       data.workDetail || '',
@@ -164,7 +167,8 @@ function addTipperEntry(data) {
     if (!sheet) {
       const newSheet = ss.insertSheet(TIPPER_SHEET_NAME);
       newSheet.appendRow([
-        'Gadi No', 'Driver Name', 'Date', 'Material', 'Loading Place',
+        'Gadi No', 'Driver Name', 'Date', 'Customer Name', 'Customer Number',
+        'Material', 'Loading Place',
         'Unloading Place', 'CFT/Trip', 'Diesel Photo', 'Timestamp'
       ]);
       return addTipperEntry(data);
@@ -174,6 +178,8 @@ function addTipperEntry(data) {
       data.gadiNo,
       data.driverName,
       data.date,
+      data.customerName || '',
+      data.customerNumber || '',
       data.material,
       data.loadingPlace || '',
       data.unloadingPlace || '',

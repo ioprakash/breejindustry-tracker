@@ -1,5 +1,5 @@
-import React from 'react';
-import { TextInput, StyleSheet, View, Text } from 'react-native';
+import React, { useState } from 'react';
+import { TextInput, StyleSheet, View, Text, Animated } from 'react-native';
 import { theme } from '../styles/theme';
 
 export const CustomInput = ({
@@ -12,30 +12,42 @@ export const CustomInput = ({
     multiline = false,
     editable = true,
     error = false,
+    icon,
 }) => {
+    const [isFocused, setIsFocused] = useState(false);
+
     return (
         <View style={styles.container}>
             {label && (
                 <Text style={styles.label}>
+                    {icon && <Text style={styles.labelIcon}>{icon} </Text>}
                     {label}
                     {required && <Text style={styles.required}> *</Text>}
                 </Text>
             )}
-            <TextInput
-                style={[
-                    styles.input,
-                    multiline && styles.multiline,
-                    error && styles.inputError,
-                    !editable && styles.inputDisabled,
-                ]}
-                value={value}
-                onChangeText={onChangeText}
-                placeholder={placeholder}
-                placeholderTextColor={theme.colors.textMuted}
-                keyboardType={keyboardType}
-                multiline={multiline}
-                editable={editable}
-            />
+            <View style={[
+                styles.inputWrapper,
+                isFocused && styles.inputWrapperFocused,
+                error && styles.inputWrapperError,
+                !editable && styles.inputWrapperDisabled,
+            ]}>
+                <TextInput
+                    style={[
+                        styles.input,
+                        multiline && styles.multiline,
+                        !editable && styles.inputDisabled,
+                    ]}
+                    value={value}
+                    onChangeText={onChangeText}
+                    placeholder={placeholder}
+                    placeholderTextColor={theme.colors.textMuted}
+                    keyboardType={keyboardType}
+                    multiline={multiline}
+                    editable={editable}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                />
+            </View>
         </View>
     );
 };
@@ -46,19 +58,40 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: theme.fontSize.sm,
-        fontWeight: theme.fontWeight.medium,
-        color: theme.colors.text,
-        marginBottom: theme.spacing.xs,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.textSecondary,
+        marginBottom: 6,
+        letterSpacing: 0.3,
+    },
+    labelIcon: {
+        fontSize: theme.fontSize.sm,
     },
     required: {
         color: theme.colors.danger,
+        fontWeight: theme.fontWeight.bold,
+    },
+    inputWrapper: {
+        backgroundColor: theme.colors.card,
+        borderWidth: 1.5,
+        borderColor: theme.colors.border,
+        borderRadius: theme.borderRadius.md,
+        overflow: 'hidden',
+    },
+    inputWrapperFocused: {
+        borderColor: theme.colors.primary,
+        backgroundColor: '#fff',
+        ...theme.shadows.sm,
+    },
+    inputWrapperError: {
+        borderColor: theme.colors.danger,
+    },
+    inputWrapperDisabled: {
+        backgroundColor: theme.colors.cardLight,
+        opacity: 0.7,
     },
     input: {
-        backgroundColor: theme.colors.cardLight,
-        borderWidth: 2,
-        borderColor: theme.colors.border,
-        borderRadius: theme.borderRadius.sm,
-        padding: theme.spacing.md,
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: 14,
         fontSize: theme.fontSize.md,
         color: theme.colors.text,
     },
@@ -66,11 +99,7 @@ const styles = StyleSheet.create({
         minHeight: 100,
         textAlignVertical: 'top',
     },
-    inputError: {
-        borderColor: theme.colors.danger,
-    },
     inputDisabled: {
-        backgroundColor: theme.colors.card,
-        opacity: 0.7,
+        color: theme.colors.textSecondary,
     },
 });
