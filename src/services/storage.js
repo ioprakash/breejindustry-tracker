@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
     EXPENSE_CACHE: '@expense_cache',
     STATS_CACHE: '@stats_cache',
     USER_ROLE: '@user_role',
+    USER_NAME: '@user_name',
 };
 
 // Save data to storage

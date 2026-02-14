@@ -56,6 +56,7 @@ export const LoginScreen = ({ navigation }) => {
             if (result.success) {
                 // Save session info
                 await saveData('@user_role', result.role);
+                await saveData('@user_name', result.name);
                 // Navigate to app
                 navigation.replace('Home');
             } else {

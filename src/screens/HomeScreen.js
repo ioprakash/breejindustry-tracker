@@ -33,12 +33,15 @@ export const HomeScreen = ({ navigation }) => {
     const [stats, setStats] = useState({ jcbCount: 0, tipperCount: 0, totalDue: 0 });
     const [refreshing, setRefreshing] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [userName, setUserName] = useState('');
     const [lastEntries, setLastEntries] = useState({ jcb: null, tipper: null });
     const [todayCounts, setTodayCounts] = useState({ jcbCount: 0, tipperCount: 0 });
 
     const checkRole = async () => {
         const role = await getData('@user_role');
+        const name = await getData('@user_name');
         setIsAdmin(role === 'admin');
+        setUserName(name || '');
 
         // Load last entries for editing
         const lastJcb = await getData('@last_jcb_entry');
@@ -67,6 +70,7 @@ export const HomeScreen = ({ navigation }) => {
                     style: 'destructive',
                     onPress: async () => {
                         await saveData('@user_role', null);
+                        await saveData('@user_name', null);
                         navigation.replace('Login');
                     }
                 }
@@ -151,7 +155,7 @@ export const HomeScreen = ({ navigation }) => {
                 {/* Welcome Card */}
                 <View style={styles.welcomeCard}>
                     <View style={styles.welcomeLeft}>
-                        <Text style={styles.welcomeGreeting}>{getGreeting()}</Text>
+                        <Text style={styles.welcomeGreeting}>{getGreeting()}, {userName}</Text>
                         <Text style={styles.welcomeText}>Track your JCB and Tipper operations efficiently</Text>
                     </View>
                     <View style={styles.welcomeIconContainer}>

@@ -13,6 +13,7 @@ import {
     cacheStats,
     getCachedStats,
     saveData,
+    getData,
 } from './storage';
 
 const API_URL = 'https://script.google.com/macros/s/AKfycbxubMOm8TjBOzgOzhazJ2-heLKddQpVI9-kK6Tea1zZlRQlIeI1h0Z8VDXUZarh5sOe-Q/exec';
@@ -34,29 +35,31 @@ export const loginUser = async (password) => {
     }
 };
 
+// Helper to add logged in user info
+const attachUserInfo = async (data) => {
+    const userName = await getData('@user_name');
+    return { ...data, enteredBy: userName };
+};
+
 // Submit JCB Entry
 export const submitJCBEntry = async (data, skipQueue = false) => {
     try {
+        const finalData = await attachUserInfo(data);
+
         if (!isOnline() && !skipQueue) {
-            await addToSyncQueue('jcb', data);
+            await addToSyncQueue('jcb', finalData);
             return { success: true, queued: true };
         }
 
         const response = await fetch(API_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'addJCB',
-                data: data,
-            }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addJCB', data: finalData }),
         });
 
         const result = await response.json();
         if (result.success) {
-            // Track last entry for editing
-            await saveData('@last_jcb_entry', { ...data, timestamp: result.timestamp });
+            await saveData('@last_jcb_entry', { ...finalData, actualEntryTime: result.actualEntryTime });
         }
         return { success: result.success, queued: false };
     } catch (error) {
@@ -72,25 +75,22 @@ export const submitJCBEntry = async (data, skipQueue = false) => {
 // Submit Tipper Entry
 export const submitTipperEntry = async (data, skipQueue = false) => {
     try {
+        const finalData = await attachUserInfo(data);
+
         if (!isOnline() && !skipQueue) {
-            await addToSyncQueue('tipper', data);
+            await addToSyncQueue('tipper', finalData);
             return { success: true, queued: true };
         }
 
         const response = await fetch(API_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'addTipper',
-                data: data,
-            }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addTipper', data: finalData }),
         });
 
         const result = await response.json();
         if (result.success) {
-            await saveData('@last_tipper_entry', { ...data, timestamp: result.timestamp });
+            await saveData('@last_tipper_entry', { ...finalData, actualEntryTime: result.actualEntryTime });
         }
         return { success: result.success, queued: false };
     } catch (error) {
@@ -106,22 +106,16 @@ export const submitTipperEntry = async (data, skipQueue = false) => {
 // Submit Diesel Entry
 export const submitDieselEntry = async (data, skipQueue = false) => {
     try {
+        const finalData = await attachUserInfo(data);
         if (!isOnline() && !skipQueue) {
-            await addToSyncQueue('diesel', data);
+            await addToSyncQueue('diesel', finalData);
             return { success: true, queued: true };
         }
-
         const response = await fetch(API_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'addDiesel',
-                data: data,
-            }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addDiesel', data: finalData }),
         });
-
         const result = await response.json();
         return { success: result.success, queued: false };
     } catch (error) {
@@ -137,22 +131,16 @@ export const submitDieselEntry = async (data, skipQueue = false) => {
 // Submit Expense Entry
 export const submitExpenseEntry = async (data, skipQueue = false) => {
     try {
+        const finalData = await attachUserInfo(data);
         if (!isOnline() && !skipQueue) {
-            await addToSyncQueue('expense', data);
+            await addToSyncQueue('expense', finalData);
             return { success: true, queued: true };
         }
-
         const response = await fetch(API_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'addExpense',
-                data: data,
-            }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addExpense', data: finalData }),
         });
-
         const result = await response.json();
         return { success: result.success, queued: false };
     } catch (error) {
@@ -168,6 +156,9 @@ export const submitExpenseEntry = async (data, skipQueue = false) => {
 // UNIVERSAL UPDATE
 export const updateEntry = async (sheetName, originalTimestamp, updatedData) => {
     try {
+        const userName = await getData('@user_name');
+        const userRole = await getData('@user_role');
+
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -176,6 +167,8 @@ export const updateEntry = async (sheetName, originalTimestamp, updatedData) => 
                 data: {
                     sheetName,
                     originalEntryTime: originalTimestamp,
+                    userName,
+                    userRole,
                     ...updatedData
                 }
             }),
@@ -187,114 +180,75 @@ export const updateEntry = async (sheetName, originalTimestamp, updatedData) => 
     }
 };
 
-// Get JCB Entries
+// Get Entries with Filters
+const fetchWithAuth = async (action) => {
+    try {
+        const userName = await getData('@user_name');
+        const role = await getData('@user_role');
+        const url = `${API_URL}?action=${action}&userName=${encodeURIComponent(userName)}&role=${role}`;
+        const response = await fetch(url);
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching ${action}:`, error);
+        return { success: false };
+    }
+}
+
 export const getJCBEntries = async () => {
-    try {
-        const response = await fetch(`${API_URL}?action=getJCB`);
-        const result = await response.json();
-
-        if (result.success) {
-            await cacheJCBData(result.data);
-            return result.data;
-        }
-
-        return await getCachedJCBData() || [];
-    } catch (error) {
-        console.error('Error getting JCB entries:', error);
-        return await getCachedJCBData() || [];
+    const result = await fetchWithAuth('getJCB');
+    if (result.success) {
+        await cacheJCBData(result.data);
+        return result.data;
     }
+    return await getCachedJCBData() || [];
 };
 
-// Get Tipper Entries
 export const getTipperEntries = async () => {
-    try {
-        const response = await fetch(`${API_URL}?action=getTipper`);
-        const result = await response.json();
-
-        if (result.success) {
-            await cacheTipperData(result.data);
-            return result.data;
-        }
-
-        return await getCachedTipperData() || [];
-    } catch (error) {
-        console.error('Error getting Tipper entries:', error);
-        return await getCachedTipperData() || [];
+    const result = await fetchWithAuth('getTipper');
+    if (result.success) {
+        await cacheTipperData(result.data);
+        return result.data;
     }
+    return await getCachedTipperData() || [];
 };
 
-// Get Diesel Entries
 export const getDieselEntries = async () => {
-    try {
-        const response = await fetch(`${API_URL}?action=getDiesel`);
-        const result = await response.json();
-
-        if (result.success) {
-            await cacheDieselData(result.data);
-            return result.data;
-        }
-
-        return await getCachedDieselData() || [];
-    } catch (error) {
-        console.error('Error getting Diesel entries:', error);
-        return await getCachedDieselData() || [];
+    const result = await fetchWithAuth('getDiesel');
+    if (result.success) {
+        await cacheDieselData(result.data);
+        return result.data;
     }
+    return await getCachedDieselData() || [];
 };
 
-// Get Expense Entries
 export const getExpenseEntries = async () => {
-    try {
-        const response = await fetch(`${API_URL}?action=getExpense`);
-        const result = await response.json();
-
-        if (result.success) {
-            await cacheExpenseData(result.data);
-            return result.data;
-        }
-
-        return await getCachedExpenseData() || [];
-    } catch (error) {
-        console.error('Error getting Expense entries:', error);
-        return await getCachedExpenseData() || [];
+    const result = await fetchWithAuth('getExpense');
+    if (result.success) {
+        await cacheExpenseData(result.data);
+        return result.data;
     }
+    return await getCachedExpenseData() || [];
 };
 
-// Get Quick Stats
 export const getQuickStats = async () => {
-    try {
-        const response = await fetch(`${API_URL}?action=getStats`);
-        const result = await response.json();
-
-        if (result.success) {
-            await cacheStats(result.data);
-            return result.data;
-        }
-
-        return await getCachedStats() || { jcbCount: 0, tipperCount: 0, totalDue: 0 };
-    } catch (error) {
-        console.error('Error getting stats:', error);
-        return await getCachedStats() || { jcbCount: 0, tipperCount: 0, totalDue: 0 };
+    const result = await fetchWithAuth('getStats');
+    if (result.success) {
+        await cacheStats(result.data);
+        return result.data;
     }
+    return await getCachedStats() || { jcbCount: 0, tipperCount: 0, totalDue: 0 };
 };
 
 // Process Sync Queue
 export const processSyncQueue = async () => {
     const queue = await getSyncQueue();
     if (queue.length === 0) return;
-
-    console.log(`Processing ${queue.length} queued items...`);
-
     for (const item of queue) {
         try {
-            if (item.type === 'jcb') {
-                await submitJCBEntry(item.data, true);
-            } else if (item.type === 'tipper') {
-                await submitTipperEntry(item.data, true);
-            } else if (item.type === 'diesel') {
-                await submitDieselEntry(item.data, true);
-            } else if (item.type === 'expense') {
-                await submitExpenseEntry(item.data, true);
-            }
+            if (item.type === 'jcb') await submitJCBEntry(item.data, true);
+            else if (item.type === 'tipper') await submitTipperEntry(item.data, true);
+            else if (item.type === 'diesel') await submitDieselEntry(item.data, true);
+            else if (item.type === 'expense') await submitExpenseEntry(item.data, true);
         } catch (error) {
             console.error('Failed to sync item:', error);
         }
