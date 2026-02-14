@@ -2,13 +2,13 @@
   "expo": {
     "name": "Brij Industry Tracker",
     "slug": "brij-industry-tracker",
-    "version": "1.4.4",
+    "version": "1.4.5",
     "orientation": "portrait",
-    "icon": "./assets/new_icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/new_splash.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -21,7 +21,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/new_adaptive_icon.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.brijindustry.tracker",
