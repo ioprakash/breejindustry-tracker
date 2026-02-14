@@ -5,7 +5,9 @@ const STORAGE_KEYS = {
     JCB_CACHE: '@jcb_cache',
     TIPPER_CACHE: '@tipper_cache',
     DIESEL_CACHE: '@diesel_cache',
+    EXPENSE_CACHE: '@expense_cache',
     STATS_CACHE: '@stats_cache',
+    USER_ROLE: '@user_role',
 };
 
 // Save data to storage
@@ -87,6 +89,14 @@ export const cacheDieselData = async (data) => {
 
 export const getCachedDieselData = async () => {
     return await getData(STORAGE_KEYS.DIESEL_CACHE);
+};
+
+export const cacheExpenseData = async (data) => {
+    await saveData(STORAGE_KEYS.EXPENSE_CACHE, data);
+};
+
+export const getCachedExpenseData = async () => {
+    return await getData(STORAGE_KEYS.EXPENSE_CACHE);
 };
 
 export const cacheStats = async (data) => {

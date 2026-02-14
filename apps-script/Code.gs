@@ -6,6 +6,7 @@ const SPREADSHEET_ID = '1zdVFPZCTOmUR-FdYANyyjOHnGSu-1-ORXuPB705NdRg';
 const JCB_SHEET_NAME = 'JCB_Logs';
 const TIPPER_SHEET_NAME = 'Tipper_Logs';
 const DIESEL_SHEET_NAME = 'Diesel_Logs';
+const EXPENSE_SHEET_NAME = 'Daily_Expenses';
 
 // Current App Version for the Updater
 const LATEST_VERSION = "1.5.12";
@@ -48,6 +49,8 @@ function doGet(e) {
       return getTipperEntries();
     } else if (action === 'getDiesel') {
       return getDieselEntries();
+    } else if (action === 'getExpense') {
+      return getExpenseEntries();
     } else if (action === 'getStats') {
       return getQuickStats();
     }
@@ -75,6 +78,8 @@ function doPost(e) {
       return addTipperEntry(data.data);
     } else if (action === 'addDiesel') {
       return addDieselEntry(data.data);
+    } else if (action === 'addExpense') {
+      return addExpenseEntry(data.data);
     }
     
     return ContentService.createTextOutput(
@@ -215,6 +220,41 @@ function addTipperEntry(data) {
       JSON.stringify({ success: false, error: error.toString() })
     ).setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// Add Expense Entry
+function addExpenseEntry(data) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(EXPENSE_SHEET_NAME);
+    
+    if (!sheet) {
+      const newSheet = ss.insertSheet(EXPENSE_SHEET_NAME);
+      newSheet.appendRow([
+        'Date', 'Expense Mode', 'Expenses Description', 'Amount', 'Remark', 'Timestamp'
+      ]);
+      return addExpenseEntry(data);
+    }
+    
+    sheet.appendRow([
+      data.date,
+      data.expenseMode,
+      data.expensesDescription || data.description || '',
+      data.amount,
+      data.remark || '',
+      new Date().toISOString()
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// Get Expense Entries
+function getExpenseEntries() {
+  return fetchEntries(EXPENSE_SHEET_NAME);
 }
 
 // Get Diesel Entries

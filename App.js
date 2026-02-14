@@ -7,6 +7,7 @@ import { JCBFormScreen } from './src/screens/JCBFormScreen';
 import { TipperFormScreen } from './src/screens/TipperFormScreen';
 import { DieselEntryScreen } from './src/screens/DieselEntryScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
+import { ExpenseFormScreen } from './src/screens/ExpenseFormScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { theme } from './src/styles/theme';
 import { UpdateModal } from './src/components/UpdateModal';
@@ -84,7 +85,12 @@ export default function App() {
           <Stack.Screen
             name="Dashboard"
             component={DashboardScreen}
-            options={{ headerShown: false }}
+            options={{ title: 'Operations Dashboard' }}
+          />
+          <Stack.Screen
+            name="ExpenseForm"
+            component={ExpenseFormScreen}
+            options={{ title: 'Daily Expense' }}
           />
         </Stack.Navigator>
       </NavigationContainer>

@@ -8,6 +8,8 @@ import {
     getCachedTipperData,
     cacheDieselData,
     getCachedDieselData,
+    cacheExpenseData,
+    getCachedExpenseData,
     cacheStats,
     getCachedStats,
 } from './storage';
@@ -125,6 +127,37 @@ export const submitDieselEntry = async (data, skipQueue = false) => {
     }
 };
 
+// Submit Expense Entry
+export const submitExpenseEntry = async (data, skipQueue = false) => {
+    try {
+        if (!isOnline() && !skipQueue) {
+            await addToSyncQueue('expense', data);
+            return { success: true, queued: true };
+        }
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'addExpense',
+                data: data,
+            }),
+        });
+
+        const result = await response.json();
+        return { success: result.success, queued: false };
+    } catch (error) {
+        console.error('Error submitting Expense entry:', error);
+        if (!skipQueue) {
+            await addToSyncQueue('expense', data);
+            return { success: true, queued: true };
+        }
+        throw error;
+    }
+};
+
 // Get JCB Entries
 export const getJCBEntries = async () => {
     try {
@@ -182,6 +215,24 @@ export const getDieselEntries = async () => {
     }
 };
 
+// Get Expense Entries
+export const getExpenseEntries = async () => {
+    try {
+        const response = await fetch(`${API_URL}?action=getExpense`);
+        const result = await response.json();
+
+        if (result.success) {
+            await cacheExpenseData(result.data);
+            return result.data;
+        }
+
+        return await getCachedExpenseData() || [];
+    } catch (error) {
+        console.error('Error getting Expense entries:', error);
+        return await getCachedExpenseData() || [];
+    }
+};
+
 // Get Quick Stats
 export const getQuickStats = async () => {
     try {
@@ -216,6 +267,8 @@ export const processSyncQueue = async () => {
                 await submitTipperEntry(item.data, true);
             } else if (item.type === 'diesel') {
                 await submitDieselEntry(item.data, true);
+            } else if (item.type === 'expense') {
+                await submitExpenseEntry(item.data, true);
             }
         } catch (error) {
             console.error('Failed to sync item:', error);

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../styles/theme';
-import { getJCBEntries, getTipperEntries, getDieselEntries } from '../services/api';
+import { getJCBEntries, getTipperEntries, getDieselEntries, getExpenseEntries } from '../services/api';
 import { formatDate, formatNumber } from '../utils/calculations';
 
 export const DashboardScreen = () => {
@@ -19,19 +19,22 @@ export const DashboardScreen = () => {
     const [jcbEntries, setJcbEntries] = useState([]);
     const [tipperEntries, setTipperEntries] = useState([]);
     const [dieselEntries, setDieselEntries] = useState([]);
+    const [expenseEntries, setExpenseEntries] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const loadData = async () => {
         try {
-            const [jcb, tipper, diesel] = await Promise.all([
+            const [jcb, tipper, diesel, expense] = await Promise.all([
                 getJCBEntries(),
                 getTipperEntries(),
                 getDieselEntries(),
+                getExpenseEntries(),
             ]);
             setJcbEntries(jcb);
             setTipperEntries(tipper);
             setDieselEntries(diesel);
+            setExpenseEntries(expense);
         } catch (error) {
             console.error('Error loading data:', error);
         } finally {
@@ -149,6 +152,26 @@ export const DashboardScreen = () => {
         </View>
     );
 
+    const ExpenseItem = ({ item }) => (
+        <View style={styles.card}>
+            <View style={[styles.cardAccent, { backgroundColor: '#8b5cf6' }]} />
+            <View style={styles.cardContent}>
+                <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>💎 {item.expenseMode || 'Expense'}</Text>
+                    <View style={styles.dateBadge}>
+                        <Text style={styles.dateBadgeText}>{formatDate(item.date)}</Text>
+                    </View>
+                </View>
+                <View style={styles.cardBody}>
+                    <InfoRow label="Description" value={item.expensesDescription || item.description || 'N/A'} />
+                    <InfoRow label="Remarks" value={item.remark || 'N/A'} />
+                    <View style={styles.divider} />
+                    <InfoRow label="Amount" value={`₹${formatNumber(item.amount)}`} bold color={theme.colors.danger} />
+                </View>
+            </View>
+        </View>
+    );
+
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
@@ -191,6 +214,15 @@ export const DashboardScreen = () => {
                         ⛽ Diesel ({dieselEntries.length})
                     </Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.tab, activeTab === 'expense' && styles.tabActive]}
+                    onPress={() => setActiveTab('expense')}
+                    activeOpacity={0.8}
+                >
+                    <Text style={[styles.tabText, activeTab === 'expense' && styles.tabTextActive]}>
+                        💎 Exp ({expenseEntries.length})
+                    </Text>
+                </TouchableOpacity>
             </View>
 
             {/* Content */}
@@ -222,13 +254,22 @@ export const DashboardScreen = () => {
                             <Text style={styles.emptyText}>No Tipper entries yet</Text>
                         </View>
                     )
-                ) : (
+                ) : activeTab === 'diesel' ? (
                     dieselEntries.length > 0 ? (
                         dieselEntries.map((item, index) => <DieselItem key={index} item={item} />)
                     ) : (
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyIcon}>📋</Text>
                             <Text style={styles.emptyText}>No Diesel entries yet</Text>
+                        </View>
+                    )
+                ) : (
+                    expenseEntries.length > 0 ? (
+                        expenseEntries.map((item, index) => <ExpenseItem key={index} item={item} />)
+                    ) : (
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyIcon}>📋</Text>
+                            <Text style={styles.emptyText}>No Expense entries yet</Text>
                         </View>
                     )
                 )}

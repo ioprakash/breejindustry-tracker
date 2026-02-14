@@ -162,14 +162,24 @@ export const HomeScreen = ({ navigation }) => {
                         isHalf
                     />
                     {isAdmin && (
-                        <MenuCard
-                            title="Dashboard"
-                            subtitle="View entries"
-                            icon="📊"
-                            colors={theme.gradients.accent}
-                            onPress={() => navigation.navigate('Dashboard')}
-                            isHalf
-                        />
+                        <>
+                            <MenuCard
+                                title="Dashboard"
+                                subtitle="View entries"
+                                icon="📊"
+                                colors={theme.gradients.accent}
+                                onPress={() => navigation.navigate('Dashboard')}
+                                isHalf
+                            />
+                            <MenuCard
+                                title="Expenses"
+                                subtitle="Daily costs"
+                                icon="💎"
+                                colors={['#8b5cf6', '#7c3aed']}
+                                onPress={() => navigation.navigate('ExpenseForm')}
+                                isHalf
+                            />
+                        </>
                     )}
                     <MenuCard
                         title="Diesel"
