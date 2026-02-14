@@ -280,7 +280,7 @@ export const HomeScreen = ({ navigation }) => {
 
                 {/* Version Footer */}
                 <Text style={styles.versionText}>
-                    Brij Industry Tracker v{Constants.expoConfig?.version || '1.7.2'}
+                    Brij Industry Tracker v{Constants.expoConfig?.version || '1.7.5'}
                 </Text>
             </ScrollView>
         </SafeAreaView>

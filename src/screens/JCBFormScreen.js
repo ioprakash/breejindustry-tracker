@@ -13,6 +13,7 @@ import { CustomInput } from '../components/CustomInput';
 import { CustomButton } from '../components/CustomButton';
 import { CustomDropdown } from '../components/CustomDropdown';
 import { PhotoPicker } from '../components/PhotoPicker';
+import { LocationPicker } from '../components/LocationPicker';
 import { theme } from '../styles/theme';
 import { submitJCBEntry, updateEntry } from '../services/api';
 import { calculateJCBTotal, calculateDueAmount, getTodayDate } from '../utils/calculations';
@@ -38,25 +39,28 @@ export const JCBFormScreen = ({ navigation, route }) => {
     const [formData, setFormData] = useState(initialData ? {
         ...initialData,
         receivedAmount: initialData.paidAmount?.toString() || '', // Map field name if different
+        rate: initialData.rate?.toString() || '',
+        totalAmount: initialData.totalAmount?.toString() || '',
+        locationLink: initialData.locationLink || '',
         remarks: initialData.remarks || '',
     } : {
-        gadiNo: '',
         date: getTodayDate(),
+        gadiNo: '',
         driverName: '',
         customerName: '',
         customerNumber: '',
-        startMtrDay: '',
-        stopMtrDay: '',
+        runMode: 'Hour',
         workDetail: '',
-        runMode: '',
-        otherRunMode: '',
         startMtr: '',
         stopMtr: '',
-        tipCount: '',
+        totalHour: '',
+        startMtrDay: '',
+        stopMtrDay: '',
         rate: '',
-        totalAmount: '0',
+        totalAmount: '',
         receivedAmount: '',
-        dueAmount: '0',
+        remarks: '',
+        locationLink: '',
         photo: null,
     });
 
@@ -341,14 +345,21 @@ export const JCBFormScreen = ({ navigation, route }) => {
                         />
                     </View>
 
-                    {/* Attachments Section */}
-                    <SectionHeader icon="📎" title="Attachments" />
+                    {/* Attachments & Location */}
+                    <SectionHeader icon="📎" title="Attachments & Location" />
                     <View style={styles.sectionCard}>
-                        <PhotoPicker
-                            photo={formData.photo}
-                            onPhotoSelected={(uri) => updateField('photo', uri)}
-                            label="Attach Photo (Optional)"
+                        <LocationPicker
+                            existingLocation={formData.locationLink}
+                            onLocationSelected={(url) => updateField('locationLink', url)}
                         />
+
+                        <View style={{ marginTop: 10 }}>
+                            <PhotoPicker
+                                photo={null} // JCB doesnt save photos yet but we have the picker
+                                onPhotoSelected={(uri) => { }}
+                                label="Work Site Photo (Optional)"
+                            />
+                        </View>
                     </View>
 
                     {/* Actions */}

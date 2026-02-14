@@ -12,6 +12,7 @@ import {
 import { CustomInput } from '../components/CustomInput';
 import { CustomButton } from '../components/CustomButton';
 import { PhotoPicker } from '../components/PhotoPicker';
+import { LocationPicker } from '../components/LocationPicker';
 import { theme } from '../styles/theme';
 import { submitDieselEntry } from '../services/api';
 import { getTodayDate } from '../utils/calculations';
@@ -36,6 +37,7 @@ export const DieselEntryScreen = ({ navigation }) => {
         dieselPaidBy: '',
         remarks: '',
         photo: null,
+        locationLink: '',
     });
 
     const updateField = (field, value) => {
@@ -170,14 +172,20 @@ export const DieselEntryScreen = ({ navigation }) => {
                         />
                     </View>
 
-                    {/* Attachments Section */}
-                    <SectionHeader icon="📎" title="Attachments" />
+                    {/* Attachments & Location */}
+                    <SectionHeader icon="📎" title="Attachments & Location" />
                     <View style={styles.sectionCard}>
-                        <PhotoPicker
-                            photo={formData.photo}
-                            onPhotoSelected={(uri) => updateField('photo', uri)}
-                            label="Diesel Receipt Photo (Optional)"
+                        <LocationPicker
+                            existingLocation={formData.locationLink}
+                            onLocationSelected={(url) => updateField('locationLink', url)}
                         />
+                        <View style={{ marginTop: 10 }}>
+                            <PhotoPicker
+                                photo={formData.photo}
+                                onPhotoSelected={(uri) => updateField('photo', uri)}
+                                label="Diesel Receipt Photo (Optional)"
+                            />
+                        </View>
                     </View>
 
                     {/* Actions */}

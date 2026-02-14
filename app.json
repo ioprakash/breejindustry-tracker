@@ -2,58 +2,40 @@
   "expo": {
     "name": "Brij Industry Tracker",
     "slug": "brij-industry-tracker",
-    "version": "1.7.2",
+    "version": "1.7.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/icon.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.brijindustry.tracker"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#FFFFFF"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
       },
-      "package": "com.brijindustry.tracker",
       "permissions": [
-        "android.permission.REQUEST_INSTALL_PACKAGES",
         "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.RECORD_AUDIO"
-      ]
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "np.com.stb.tracker"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow Brij Industry to access your camera for taking diesel receipt photos"
-        }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Allow Brij Industry to access your photos for diesel receipts",
-          "cameraPermission": "Allow Brij Industry to access your camera"
-        }
-      ]
-    ],
     "extra": {
       "eas": {
-        "projectId": "f09b52bd-9cff-485d-a0b7-fcb107315ea5"
+        "projectId": "7299a4c0-2f96-419b-ab29-657e2315024d"
       }
     }
   }

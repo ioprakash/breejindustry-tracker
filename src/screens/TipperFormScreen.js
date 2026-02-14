@@ -12,6 +12,7 @@ import {
 import { CustomInput } from '../components/CustomInput';
 import { CustomButton } from '../components/CustomButton';
 import { PhotoPicker } from '../components/PhotoPicker';
+import { LocationPicker } from '../components/LocationPicker';
 import { theme } from '../styles/theme';
 import { submitTipperEntry, updateEntry } from '../services/api';
 import { getTodayDate } from '../utils/calculations';
@@ -27,17 +28,23 @@ const SectionHeader = ({ icon, title }) => (
 export const TipperFormScreen = ({ navigation, route }) => {
     const { initialData, isEdit } = route.params || {};
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState(initialData || {
+    const [formData, setFormData] = useState(initialData ? {
+        ...initialData,
+        cftTrip: initialData.cftTrip?.toString() || '',
+        locationLink: initialData.locationLink || '',
+    } : {
+        date: getTodayDate(),
         gadiNo: '',
         driverName: '',
-        date: getTodayDate(),
         customerName: '',
         customerNumber: '',
         material: '',
         loadingPlace: '',
         unloadingPlace: '',
         cftTrip: '',
+        remarks: '',
         photo: null,
+        locationLink: '',
     });
 
     const updateField = (field, value) => {
@@ -185,14 +192,20 @@ export const TipperFormScreen = ({ navigation, route }) => {
                         />
                     </View>
 
-                    {/* Attachments Section */}
-                    <SectionHeader icon="📎" title="Attachments" />
+                    {/* Attachments & Location */}
+                    <SectionHeader icon="📎" title="Attachments & Location" />
                     <View style={styles.sectionCard}>
-                        <PhotoPicker
-                            photo={formData.photo}
-                            onPhotoSelected={(uri) => updateField('photo', uri)}
-                            label="Attach Photo (Optional)"
+                        <LocationPicker
+                            existingLocation={formData.locationLink}
+                            onLocationSelected={(url) => updateField('locationLink', url)}
                         />
+                        <View style={{ marginTop: 10 }}>
+                            <PhotoPicker
+                                photo={formData.photo}
+                                onPhotoSelected={(uri) => updateField('photo', uri)}
+                                label="Load Photo (Optional)"
+                            />
+                        </View>
                     </View>
 
                     {/* Actions */}
