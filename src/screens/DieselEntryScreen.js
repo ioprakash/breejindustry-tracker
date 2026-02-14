@@ -177,7 +177,9 @@ export const DieselEntryScreen = ({ navigation }) => {
                     <View style={styles.sectionCard}>
                         <LocationPicker
                             existingLocation={formData.locationLink}
-                            onLocationSelected={(url) => updateField('locationLink', url)}
+                            onLocationSelected={(url, address) => {
+                                setFormData(prev => ({ ...prev, locationLink: url, address: address }));
+                            }}
                         />
                         <View style={{ marginTop: 10 }}>
                             <PhotoPicker

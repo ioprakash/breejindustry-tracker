@@ -6,8 +6,8 @@ const TIPPER_SHEET_NAME = 'Tipper_Logs';
 const DIESEL_SHEET_NAME = 'Diesel_Logs';
 const EXPENSE_SHEET_NAME = 'Daily_Expenses';
 
-const LATEST_VERSION = '1.7.7';
-const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.7.7.apk';
+const LATEST_VERSION = '1.7.8';
+const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.7.8.apk';
 
 // Role-based Passwords
 const ADMIN_PASSWORD = "667";
@@ -94,21 +94,22 @@ function doPost(e) {
 function addEntry(sheetName, data) {
   const sheet = checkAndFixHeaders(sheetName);
   const now = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+  const entryTime = data.address ? data.address + " (" + now + ")" : now;
   const entryBy = data.enteredBy || 'Unknown';
   let row = [];
 
   if (sheetName === JCB_SHEET_NAME) {
-    row = [data.date, data.gadiNo, data.driverName, data.customerName || data.partyName || '', data.customerNumber || '', data.runMode || '', data.workDetail || '', data.startMtr || '', data.stopMtr || '', data.totalHour || data.tipCount || '0', data.startMtrDay || '', data.stopMtrDay || '', data.rate, data.totalAmount, data.receivedAmount || data.paidAmount || '0', data.dueAmount || '0', data.locationLink || '', entryBy, now];
+    row = [data.date, data.gadiNo, data.driverName, data.customerName || data.partyName || '', data.customerNumber || '', data.runMode || '', data.workDetail || '', data.startMtr || '', data.stopMtr || '', data.totalHour || data.tipCount || '0', data.startMtrDay || '', data.stopMtrDay || '', data.rate, data.totalAmount, data.receivedAmount || data.paidAmount || '0', data.dueAmount || '0', data.locationLink || '', entryBy, entryTime];
   } else if (sheetName === TIPPER_SHEET_NAME) {
-    row = [data.date, data.gadiNo, data.driverName, data.customerName || '', data.customerNumber || '', data.material || '', data.loadingPlace || '', data.unloadingPlace || '', data.cftTrip || '', data.photo || '', data.locationLink || '', entryBy, now];
+    row = [data.date, data.gadiNo, data.driverName, data.customerName || '', data.customerNumber || '', data.material || '', data.loadingPlace || '', data.unloadingPlace || '', data.cftTrip || '', data.photo || '', data.locationLink || '', entryBy, entryTime];
   } else if (sheetName === DIESEL_SHEET_NAME) {
-    row = [data.date, data.gadiNo || data.vehicleNo || '', data.dieselLtr || '0', data.dieselCost || '0', data.petrolPumpName || '', data.dieselMtr || data.meterReading || '', data.dieselPaidBy || data.paidBy || '', data.remarks || '', data.locationLink || '', entryBy, now];
+    row = [data.date, data.gadiNo || data.vehicleNo || '', data.dieselLtr || '0', data.dieselCost || '0', data.petrolPumpName || '', data.dieselMtr || data.meterReading || '', data.dieselPaidBy || data.paidBy || '', data.remarks || '', data.locationLink || '', entryBy, entryTime];
   } else if (sheetName === EXPENSE_SHEET_NAME) {
-    row = [data.date, data.expenseMode, data.expensesDescription || data.description || '', data.amount, data.remark || '', new Date().toISOString(), entryBy, now];
+    row = [data.date, data.expenseMode, data.expensesDescription || data.description || '', data.amount, data.remark || '', new Date().toISOString(), entryBy, entryTime];
   }
 
   sheet.appendRow(row);
-  return JSON_RES({ success: true, actualEntryTime: now });
+  return JSON_RES({ success: true, actualEntryTime: entryTime });
 }
 
 function updateEntry(data) {
@@ -154,30 +155,52 @@ function fetchEntries(sheetName, role, userName) {
 
 function getQuickStats(role, userName) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let jcbCount = 0, tipperCount = 0, totalDue = 0;
+  let jcbCount = 0, tipperCount = 0, todayJcb = 0, todayTipper = 0, totalDue = 0;
+  const now = new Date();
+  const todayStr = Utilities.formatDate(now, "Asia/Kolkata", "yyyy-MM-dd");
+  const targetUser = (userName || "").toString().trim();
+
   const js = ss.getSheetByName(JCB_SHEET_NAME);
   if (js) { 
     const d = js.getDataRange().getValues(); 
     const headers = d[0];
     const userIdx = headers.indexOf('Entered By');
     const dueIdx = headers.indexOf('Due Amount');
+    const dateIdx = headers.indexOf('Date');
+    
     for(let i=1; i<d.length; i++) {
-      if (role === 'admin' || (userIdx !== -1 && d[i][userIdx] === userName)) {
+      const rowUser = (d[i][userIdx] || "").toString().trim();
+      const rowDate = d[i][dateIdx] ? Utilities.formatDate(new Date(d[i][dateIdx]), "Asia/Kolkata", "yyyy-MM-dd") : "";
+      
+      if (role === 'admin' || rowUser === targetUser) {
         jcbCount++;
         totalDue += parseFloat(d[i][dueIdx]) || 0;
+        if (rowDate === todayStr) todayJcb++;
       }
     }
   }
+
   const ts = ss.getSheetByName(TIPPER_SHEET_NAME);
   if (ts) {
     const d = ts.getDataRange().getValues();
     const headers = d[0];
     const userIdx = headers.indexOf('Entered By');
+    const dateIdx = headers.indexOf('Date');
+
     for(let i=1; i<d.length; i++) {
-        if (role === 'admin' || (userIdx !== -1 && d[i][userIdx] === userName)) tipperCount++;
+      const rowUser = (d[i][userIdx] || "").toString().trim();
+      const rowDate = d[i][dateIdx] ? Utilities.formatDate(new Date(d[i][dateIdx]), "Asia/Kolkata", "yyyy-MM-dd") : "";
+
+      if (role === 'admin' || rowUser === targetUser) {
+        tipperCount++;
+        if (rowDate === todayStr) todayTipper++;
+      }
     }
   }
-  return JSON_RES({ success: true, data: { jcbCount, tipperCount, totalDue } });
+  return JSON_RES({ 
+    success: true, 
+    data: { jcbCount, tipperCount, todayJcb, todayTipper, totalDue } 
+  });
 }
 
 function toCamelCase(str) {

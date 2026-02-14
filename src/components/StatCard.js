@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../styles/theme';
 
-export const StatCard = ({ value, label, icon, colors = theme.gradients.primary }) => {
+export const StatCard = ({ value, label, subtitle, icon, colors = theme.gradients.primary }) => {
     return (
         <LinearGradient
             colors={colors}
@@ -16,6 +16,7 @@ export const StatCard = ({ value, label, icon, colors = theme.gradients.primary 
                 <View style={styles.textContainer}>
                     <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
                     <Text style={styles.label}>{label}</Text>
+                    {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
                 </View>
             </View>
             <View style={styles.decorCircle} />
@@ -53,6 +54,12 @@ const styles = StyleSheet.create({
         color: 'rgba(255, 255, 255, 0.85)',
         fontWeight: theme.fontWeight.medium,
         letterSpacing: 0.3,
+    },
+    subtitle: {
+        fontSize: theme.fontSize.xs,
+        color: 'rgba(255, 255, 255, 0.7)',
+        marginTop: 2,
+        fontStyle: 'italic',
     },
     decorCircle: {
         position: 'absolute',

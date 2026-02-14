@@ -33,8 +33,20 @@ export const LocationPicker = ({ onLocationSelected, existingLocation }) => {
             const { latitude, longitude } = currentPosition.coords;
             const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
 
+            // Fetch address
+            let address = '';
+            try {
+                const reverseGeocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+                if (reverseGeocode && reverseGeocode.length > 0) {
+                    const place = reverseGeocode[0];
+                    address = `${place.name || ''}, ${place.city || ''}, ${place.region || ''}, ${place.country || ''}`.replace(/^, |, $/g, '').replace(/, ,/g, ',');
+                }
+            } catch (err) {
+                console.warn('Reverse geocode failed:', err);
+            }
+
             setLocation(mapsUrl);
-            onLocationSelected(mapsUrl);
+            onLocationSelected(mapsUrl, address);
         } catch (error) {
             console.error('Error getting location:', error);
             Alert.alert('Error', 'Could not fetch location. Please ensure GPS is on.');

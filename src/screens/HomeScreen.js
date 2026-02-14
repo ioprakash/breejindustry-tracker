@@ -29,12 +29,11 @@ const getGreeting = () => {
 };
 
 export const HomeScreen = ({ navigation }) => {
-    const [stats, setStats] = useState({ jcbCount: 0, tipperCount: 0, totalDue: 0 });
+    const [stats, setStats] = useState({ jcbCount: 0, tipperCount: 0, todayJcb: 0, todayTipper: 0, totalDue: 0 });
     const [refreshing, setRefreshing] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [userName, setUserName] = useState('');
     const [lastEntries, setLastEntries] = useState({ jcb: null, tipper: null });
-    const [todayCounts, setTodayCounts] = useState({ jcbCount: 0, tipperCount: 0 });
     const isMounted = React.useRef(true);
 
     const checkRole = async () => {
@@ -51,18 +50,6 @@ export const HomeScreen = ({ navigation }) => {
         const lastTipper = await getData('@last_tipper_entry');
         if (isMounted.current) {
             setLastEntries({ jcb: lastJcb, tipper: lastTipper });
-        }
-
-        // Calculate today's counts locally for employee
-        const jcbData = await getData('@jcb_cache') || [];
-        const tipperData = await getData('@tipper_cache') || [];
-        const today = new Date().toISOString().split('T')[0];
-
-        if (isMounted.current) {
-            setTodayCounts({
-                jcbCount: jcbData.filter(e => e.date === today && (role === 'admin' || e.enteredBy === name)).length,
-                tipperCount: tipperData.filter(e => e.date === today && (role === 'admin' || e.enteredBy === name)).length
-            });
         }
     };
 
@@ -93,8 +80,14 @@ export const HomeScreen = ({ navigation }) => {
         try {
             await processSyncQueue();
             const data = await getQuickStats();
-            if (isMounted.current) {
-                setStats(data);
+            if (isMounted.current && data) {
+                setStats({
+                    jcbCount: data.jcbCount || 0,
+                    tipperCount: data.tipperCount || 0,
+                    todayJcb: data.todayJcb || 0,
+                    todayTipper: data.todayTipper || 0,
+                    totalDue: data.totalDue || 0
+                });
             }
         } catch (error) {
             console.error('Error loading stats:', error);
@@ -229,19 +222,21 @@ export const HomeScreen = ({ navigation }) => {
                 </View>
 
                 {/* Quick Stats */}
-                <Text style={styles.sectionTitle}>{isAdmin ? 'System Overview' : 'Your Today\'s Activity'}</Text>
+                <Text style={styles.sectionTitle}>{isAdmin ? 'System Overview' : 'Your Activity Summary'}</Text>
                 <View style={styles.statsGrid}>
                     <StatCard
                         icon="🚜"
-                        value={isAdmin ? stats.jcbCount : todayCounts.jcbCount}
+                        value={isAdmin ? stats.jcbCount : stats.todayJcb}
                         label={isAdmin ? "Total JCB Entries" : "Today's JCB Entries"}
                         colors={theme.gradients.primary}
+                        subtitle={!isAdmin ? `Total: ${stats.jcbCount}` : null}
                     />
                     <StatCard
                         icon="🚚"
-                        value={isAdmin ? stats.tipperCount : todayCounts.tipperCount}
+                        value={isAdmin ? stats.tipperCount : stats.todayTipper}
                         label={isAdmin ? "Total Tipper Trips" : "Today's Trips"}
                         colors={theme.gradients.secondary}
+                        subtitle={!isAdmin ? `Total: ${stats.tipperCount}` : null}
                     />
                     {isAdmin && (
                         <StatCard
