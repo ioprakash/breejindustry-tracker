@@ -2,9 +2,9 @@
   "expo": {
     "name": "Brij Industry Tracker",
     "slug": "brij-industry-tracker",
-    "version": "1.5.10",
+    "version": "1.5.11",
     "orientation": "portrait",
-    "icon": "./assets/new_icon.png",
+    "icon": "./assets/final_icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -21,7 +21,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/new_adaptive_icon.png",
+        "foregroundImage": "./assets/final_icon.png",
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.brijindustry.tracker",
