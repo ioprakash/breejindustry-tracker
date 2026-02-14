@@ -11,24 +11,27 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../styles/theme';
-import { getJCBEntries, getTipperEntries } from '../services/api';
+import { getJCBEntries, getTipperEntries, getDieselEntries } from '../services/api';
 import { formatDate, formatNumber } from '../utils/calculations';
 
 export const DashboardScreen = () => {
     const [activeTab, setActiveTab] = useState('jcb');
     const [jcbEntries, setJcbEntries] = useState([]);
     const [tipperEntries, setTipperEntries] = useState([]);
+    const [dieselEntries, setDieselEntries] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const loadData = async () => {
         try {
-            const [jcb, tipper] = await Promise.all([
+            const [jcb, tipper, diesel] = await Promise.all([
                 getJCBEntries(),
                 getTipperEntries(),
+                getDieselEntries(),
             ]);
             setJcbEntries(jcb);
             setTipperEntries(tipper);
+            setDieselEntries(diesel);
         } catch (error) {
             console.error('Error loading data:', error);
         } finally {
@@ -116,6 +119,36 @@ export const DashboardScreen = () => {
         </View>
     );
 
+    const DieselItem = ({ item }) => (
+        <View style={styles.card}>
+            <View style={[styles.cardAccent, { backgroundColor: theme.colors.warning || '#f59e0b' }]} />
+            <View style={styles.cardContent}>
+                <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>⛽ {item.vehicleNo || item.gadiNo || 'Vehicle'}</Text>
+                    <View style={styles.dateBadge}>
+                        <Text style={styles.dateBadgeText}>{formatDate(item.date)}</Text>
+                    </View>
+                </View>
+                <View style={styles.cardBody}>
+                    <InfoRow label="Diesel" value={`${item.dieselLtr || item['diesel(ltr)'] || '0'} Ltr`} />
+                    <InfoRow label="Cost" value={`₹${formatNumber(item.cost || item.dieselCost || 0)}`} />
+                    {item.petrolPumpName ? (
+                        <InfoRow label="Pump" value={item.petrolPumpName} />
+                    ) : null}
+                    {item.meterReading ? (
+                        <InfoRow label="Meter" value={item.meterReading} />
+                    ) : null}
+                    {item.paidBy ? (
+                        <InfoRow label="Paid By" value={item.paidBy} />
+                    ) : null}
+                    {item.remarks ? (
+                        <InfoRow label="Remarks" value={item.remarks} />
+                    ) : null}
+                </View>
+            </View>
+        </View>
+    );
+
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
@@ -149,6 +182,15 @@ export const DashboardScreen = () => {
                         🚚 Tipper ({tipperEntries.length})
                     </Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.tab, activeTab === 'diesel' && styles.tabActive]}
+                    onPress={() => setActiveTab('diesel')}
+                    activeOpacity={0.8}
+                >
+                    <Text style={[styles.tabText, activeTab === 'diesel' && styles.tabTextActive]}>
+                        ⛽ Diesel ({dieselEntries.length})
+                    </Text>
+                </TouchableOpacity>
             </View>
 
             {/* Content */}
@@ -171,13 +213,22 @@ export const DashboardScreen = () => {
                             <Text style={styles.emptyText}>No JCB entries yet</Text>
                         </View>
                     )
-                ) : (
+                ) : activeTab === 'tipper' ? (
                     tipperEntries.length > 0 ? (
                         tipperEntries.map((item, index) => <TipperItem key={index} item={item} />)
                     ) : (
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyIcon}>📋</Text>
                             <Text style={styles.emptyText}>No Tipper entries yet</Text>
+                        </View>
+                    )
+                ) : (
+                    dieselEntries.length > 0 ? (
+                        dieselEntries.map((item, index) => <DieselItem key={index} item={item} />)
+                    ) : (
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyIcon}>📋</Text>
+                            <Text style={styles.emptyText}>No Diesel entries yet</Text>
                         </View>
                     )
                 )}

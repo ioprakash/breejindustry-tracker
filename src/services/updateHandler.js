@@ -1,4 +1,5 @@
 import * as FileSystem from 'expo-file-system';
+import * as IntentLauncher from 'expo-intent-launcher';
 import Constants from 'expo-constants';
 import { Alert, Platform, Linking } from 'react-native';
 
@@ -24,12 +25,57 @@ export const checkForUpdates = async (apiUrl) => {
     }
 };
 
+// Silent Install: Download APK directly to device and open installer
 export const downloadAndInstallUpdate = async (downloadUrl, onProgress) => {
-    if (Platform.OS !== 'android') return;
+    if (Platform.OS !== 'android') return false;
 
     try {
-        // Directly open the download URL in the browser
-        // This is the most reliable way to download large APK files from GitHub
+        const fileName = downloadUrl.split('/').pop() || 'update.apk';
+        const fileUri = FileSystem.documentDirectory + fileName;
+
+        // Start download with progress tracking
+        const downloadResumable = FileSystem.createDownloadResumable(
+            downloadUrl,
+            fileUri,
+            {},
+            (downloadProgress) => {
+                const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+                if (onProgress) {
+                    onProgress(progress);
+                }
+            }
+        );
+
+        const result = await downloadResumable.downloadAsync();
+        if (!result || !result.uri) {
+            throw new Error('Download failed - no file URI');
+        }
+
+        // Get content URI for the downloaded file
+        const contentUri = await FileSystem.getContentUriAsync(result.uri);
+
+        // Open the APK installer using intent launcher
+        await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+            data: contentUri,
+            flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
+            type: 'application/vnd.android.package-archive',
+        });
+
+        return true;
+    } catch (error) {
+        console.error('Silent install failed:', error);
+        Alert.alert(
+            'Download Failed',
+            'Silent install failed. Try using Browser Download instead.',
+            [{ text: 'OK' }]
+        );
+        return false;
+    }
+};
+
+// Browser Download: Open the download URL in the browser
+export const openInBrowser = async (downloadUrl) => {
+    try {
         const supported = await Linking.canOpenURL(downloadUrl);
         if (supported) {
             await Linking.openURL(downloadUrl);
@@ -38,9 +84,9 @@ export const downloadAndInstallUpdate = async (downloadUrl, onProgress) => {
             throw new Error('Cannot open URL');
         }
     } catch (error) {
-        console.error('Download failed:', error);
+        console.error('Browser download failed:', error);
         Alert.alert(
-            'Update Failed',
+            'Download Failed',
             'Could not open the download link. Please download manually from GitHub.',
             [{ text: 'OK' }]
         );

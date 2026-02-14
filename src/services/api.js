@@ -153,6 +153,24 @@ export const getTipperEntries = async () => {
     }
 };
 
+// Get Diesel Entries
+export const getDieselEntries = async () => {
+    try {
+        const response = await fetch(`${API_URL}?action=getDiesel`);
+        const result = await response.json();
+
+        if (result.success) {
+            await cacheDieselData(result.data);
+            return result.data;
+        }
+
+        return await getCachedDieselData() || [];
+    } catch (error) {
+        console.error('Error getting Diesel entries:', error);
+        return await getCachedDieselData() || [];
+    }
+};
+
 // Get Quick Stats
 export const getQuickStats = async () => {
     try {

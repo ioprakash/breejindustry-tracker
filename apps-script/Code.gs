@@ -8,8 +8,8 @@ const TIPPER_SHEET_NAME = 'Tipper_Logs';
 const DIESEL_SHEET_NAME = 'Diesel_Logs';
 
 // Current App Version for the Updater
-const LATEST_VERSION = "1.5.3";
-const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.5.3.apk";
+const LATEST_VERSION = "1.5.4";
+const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.5.4.apk";
 
 // Handle GET requests (fetch data)
 function doGet(e) {
@@ -22,7 +22,7 @@ function doGet(e) {
         success: true,
         version: LATEST_VERSION,
         downloadUrl: DOWNLOAD_URL,
-        notes: "Photo attachments in all forms, petrol pump name in diesel, browser-based update download."
+        notes: "Dashboard Diesel tab, 3 update options (Skip, Silent Install, Browser Download)."
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
