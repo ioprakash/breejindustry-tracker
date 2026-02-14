@@ -8,8 +8,8 @@ const TIPPER_SHEET_NAME = 'Tipper_Logs';
 const DIESEL_SHEET_NAME = 'Diesel_Logs';
 
 // Current App Version for the Updater
-const LATEST_VERSION = "1.5.11";
-const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.5.11.apk";
+const LATEST_VERSION = "1.5.12";
+const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.5.12.apk";
 
 // Simple Passwords for Role-based access
 const ADMIN_PASSWORD = "667";  // Password for Owner/Admin

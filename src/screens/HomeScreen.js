@@ -157,11 +157,11 @@ export const HomeScreen = ({ navigation }) => {
                     />
                 </View>
 
-                {/* Quick Stats - Admin Only */}
-                {isAdmin && (
-                    <>
-                        <Text style={styles.sectionTitle}>Overview</Text>
-                        <View style={styles.statsGrid}>
+                {/* Quick Stats */}
+                <Text style={styles.sectionTitle}>Overview</Text>
+                <View style={styles.statsGrid}>
+                    {isAdmin && (
+                        <>
                             <StatCard
                                 icon="🚜"
                                 value={stats.jcbCount || 0}
@@ -174,15 +174,15 @@ export const HomeScreen = ({ navigation }) => {
                                 label="Tipper Trips"
                                 colors={theme.gradients.secondary}
                             />
-                            <StatCard
-                                icon="💰"
-                                value={`₹${formatNumber(stats.totalDue || 0)}`}
-                                label="Total Due"
-                                colors={['#ef4444', '#dc2626']}
-                            />
-                        </View>
-                    </>
-                )}
+                        </>
+                    )}
+                    <StatCard
+                        icon="💰"
+                        value={`₹${formatNumber(stats.totalDue || 0)}`}
+                        label="Total Due"
+                        colors={['#ef4444', '#dc2626']}
+                    />
+                </View>
 
                 {/* Version Footer */}
                 <Text style={styles.versionText}>
