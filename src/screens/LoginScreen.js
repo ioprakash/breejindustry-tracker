@@ -23,25 +23,16 @@ const { width } = Dimensions.get('window');
 export const LoginScreen = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [updateAvailable, setUpdateAvailable] = useState(false);
 
     React.useEffect(() => {
-        const checkSessionAndUpdates = async () => {
-            // 1. Check if already logged in
+        const checkSession = async () => {
+            // Check if already logged in
             const role = await getData('@user_role');
             if (role) {
                 navigation.replace('Home');
-                return;
-            }
-
-            // 2. Check for updates on login screen
-            const API_URL = 'https://script.google.com/macros/s/AKfycbxubMOm8TjBOzgOzhazJ2-heLKddQpVI9-kK6Tea1zZlRQlIeI1h0Z8VDXUZarh5sOe-Q/exec';
-            const update = await checkForUpdates(API_URL);
-            if (update.updateAvailable) {
-                setUpdateAvailable(true);
             }
         };
-        checkSessionAndUpdates();
+        checkSession();
     }, []);
 
     const handleLogin = async () => {
@@ -115,14 +106,6 @@ export const LoginScreen = ({ navigation }) => {
                                 style={styles.loginBtn}
                             />
 
-                            {updateAvailable && (
-                                <TouchableOpacity
-                                    style={styles.updateBadge}
-                                    onPress={() => Alert.alert('Update Available', 'A newer version of the app is available. Please log in to update or check the home screen.')}
-                                >
-                                    <Text style={styles.updateBadgeText}>✨ New Version Available!</Text>
-                                </TouchableOpacity>
-                            )}
 
                             <Text style={styles.footerText}>
                                 Restricted access for authorized personnel only

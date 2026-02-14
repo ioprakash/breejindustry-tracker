@@ -16,7 +16,7 @@ import { theme } from '../styles/theme';
 import { StatCard } from '../components/StatCard';
 import { getQuickStats, processSyncQueue } from '../services/api';
 import { formatNumber } from '../utils/calculations';
-import { checkForUpdates } from '../utils/updateChecker';
+import { formatNumber } from '../utils/calculations';
 import { getData, saveData } from '../services/storage';
 import { Alert } from 'react-native';
 
@@ -91,7 +91,6 @@ export const HomeScreen = ({ navigation }) => {
     useEffect(() => {
         checkRole();
         loadStats();
-        checkForUpdates();
     }, []);
 
     const onRefresh = async () => {
