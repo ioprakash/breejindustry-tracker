@@ -1,10 +1,8 @@
 import * as FileSystem from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 import Constants from 'expo-constants';
-import { Alert, Platform } from 'react-native';
+import { Alert, Platform, Linking } from 'react-native';
 
-// This URL should point to your latest APK download link
-// For now, we'll assume the API returns this
 const CURRENT_VERSION = Constants.expoConfig.version;
 
 export const checkForUpdates = async (apiUrl) => {
@@ -34,22 +32,44 @@ export const downloadAndInstallUpdate = async (downloadUrl, onProgress) => {
         const filename = 'brij_tracker_update.apk';
         const fileUri = `${FileSystem.cacheDirectory}${filename}`;
 
+        // Delete old cached APK if exists
+        const fileInfo = await FileSystem.getInfoAsync(fileUri);
+        if (fileInfo.exists) {
+            await FileSystem.deleteAsync(fileUri, { idempotent: true });
+        }
+
         const downloadResumable = FileSystem.createDownloadResumable(
             downloadUrl,
             fileUri,
-            {},
+            {
+                headers: {
+                    'Accept': 'application/octet-stream',
+                },
+            },
             (downloadProgress) => {
-                const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
-                if (onProgress) onProgress(progress);
+                if (downloadProgress.totalBytesExpectedToWrite > 0) {
+                    const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+                    if (onProgress) onProgress(progress);
+                }
             }
         );
 
-        const { uri } = await downloadResumable.downloadAsync();
+        const result = await downloadResumable.downloadAsync();
 
-        // Use FileSystem to get a content URI that can be used with IntentLauncher
-        const contentUri = await FileSystem.getContentUriAsync(uri);
+        if (!result || !result.uri) {
+            throw new Error('Download returned no URI');
+        }
 
-        // ACTION_VIEW is more robust for APK installation on newer Android versions
+        // Verify file was actually downloaded and has content
+        const downloadedFileInfo = await FileSystem.getInfoAsync(result.uri);
+        if (!downloadedFileInfo.exists || downloadedFileInfo.size < 1000000) {
+            throw new Error(`Downloaded file is too small or missing (${downloadedFileInfo.size || 0} bytes)`);
+        }
+
+        // Get content URI for the APK file
+        const contentUri = await FileSystem.getContentUriAsync(result.uri);
+
+        // Launch the installer
         await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
             data: contentUri,
             flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
@@ -59,7 +79,19 @@ export const downloadAndInstallUpdate = async (downloadUrl, onProgress) => {
         return true;
     } catch (error) {
         console.error('Download/Install failed:', error);
-        Alert.alert('Update Failed', 'Could not download or install the update. Please try again later.');
+
+        // Fallback: Open download URL in browser so user can install manually
+        Alert.alert(
+            'Update Failed',
+            'Automatic install failed. Would you like to download the APK in your browser instead?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Open in Browser',
+                    onPress: () => Linking.openURL(downloadUrl),
+                },
+            ]
+        );
         return false;
     }
 };
