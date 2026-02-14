@@ -9,7 +9,7 @@ const DIESEL_SHEET_NAME = 'Diesel_Logs';
 
 // Current App Version for the Updater
 const LATEST_VERSION = "1.5.3";
-const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/blob/main/brij-industry-tracker-v1.5.3.apk?raw=true";
+const DOWNLOAD_URL = "https://github.com/ioprakash/breejindustry-tracker/raw/main/brij-industry-tracker-v1.5.3.apk";
 
 // Handle GET requests (fetch data)
 function doGet(e) {
