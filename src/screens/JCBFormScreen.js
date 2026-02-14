@@ -14,7 +14,7 @@ import { CustomButton } from '../components/CustomButton';
 import { CustomDropdown } from '../components/CustomDropdown';
 import { PhotoPicker } from '../components/PhotoPicker';
 import { theme } from '../styles/theme';
-import { submitJCBEntry } from '../services/api';
+import { submitJCBEntry, updateEntry } from '../services/api';
 import { calculateJCBTotal, calculateDueAmount, getTodayDate } from '../utils/calculations';
 
 const RUN_MODE_OPTIONS = [
@@ -32,9 +32,14 @@ const SectionHeader = ({ icon, title }) => (
     </View>
 );
 
-export const JCBFormScreen = ({ navigation }) => {
+export const JCBFormScreen = ({ navigation, route }) => {
+    const { initialData, isEdit } = route.params || {};
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState(initialData ? {
+        ...initialData,
+        receivedAmount: initialData.paidAmount?.toString() || '', // Map field name if different
+        remarks: initialData.remarks || '',
+    } : {
         gadiNo: '',
         date: getTodayDate(),
         driverName: '',
@@ -116,6 +121,17 @@ export const JCBFormScreen = ({ navigation }) => {
             };
             delete dataToSubmit.otherRunMode;
 
+            if (isEdit) {
+                // For edit, we need the original timestamp to find the row
+                const result = await updateEntry('JCB_Logs', initialData.actualEntryTime, dataToSubmit);
+                if (result.success) {
+                    Alert.alert('Success', 'Entry updated successfully', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+                } else {
+                    Alert.alert('Error', result.error || 'Failed to update entry');
+                }
+                return;
+            }
+
             const result = await submitJCBEntry(dataToSubmit);
 
             if (result.queued) {
@@ -147,8 +163,8 @@ export const JCBFormScreen = ({ navigation }) => {
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     {/* Header */}
                     <View style={styles.header}>
-                        <Text style={styles.title}>🚜 JCB Entry Form</Text>
-                        <Text style={styles.subtitle}>Log JCB work details and payments</Text>
+                        <Text style={styles.title}>{isEdit ? '✏️ Edit JCB Entry' : '🚜 JCB Entry Form'}</Text>
+                        <Text style={styles.subtitle}>{isEdit ? 'Update details for this record' : 'Log JCB work details and payments'}</Text>
                     </View>
 
                     {/* Vehicle Info Section */}
@@ -357,7 +373,7 @@ export const JCBFormScreen = ({ navigation }) => {
                             style={styles.buttonHalf}
                         />
                         <CustomButton
-                            title={loading ? 'Submitting...' : 'Submit Entry'}
+                            title={loading ? 'Processing...' : (isEdit ? 'Update Entry' : 'Submit Entry')}
                             icon="✓"
                             onPress={handleSubmit}
                             loading={loading}

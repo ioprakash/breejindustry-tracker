@@ -13,7 +13,7 @@ import { CustomInput } from '../components/CustomInput';
 import { CustomButton } from '../components/CustomButton';
 import { PhotoPicker } from '../components/PhotoPicker';
 import { theme } from '../styles/theme';
-import { submitTipperEntry } from '../services/api';
+import { submitTipperEntry, updateEntry } from '../services/api';
 import { getTodayDate } from '../utils/calculations';
 
 const SectionHeader = ({ icon, title }) => (
@@ -24,9 +24,10 @@ const SectionHeader = ({ icon, title }) => (
     </View>
 );
 
-export const TipperFormScreen = ({ navigation }) => {
+export const TipperFormScreen = ({ navigation, route }) => {
+    const { initialData, isEdit } = route.params || {};
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState(initialData || {
         gadiNo: '',
         driverName: '',
         date: getTodayDate(),
@@ -59,6 +60,16 @@ export const TipperFormScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
+            if (isEdit) {
+                const result = await updateEntry('Tipper_Logs', initialData.actualEntryTime, formData);
+                if (result.success) {
+                    Alert.alert('Success', 'Tipper entry updated successfully', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+                } else {
+                    Alert.alert('Error', result.error || 'Failed to update entry');
+                }
+                return;
+            }
+
             const result = await submitTipperEntry(formData);
 
             if (result.queued) {
@@ -90,8 +101,8 @@ export const TipperFormScreen = ({ navigation }) => {
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     {/* Header */}
                     <View style={styles.header}>
-                        <Text style={styles.title}>🚚 Tipper Entry Form</Text>
-                        <Text style={styles.subtitle}>Record Tipper trips and materials</Text>
+                        <Text style={styles.title}>{isEdit ? '✏️ Edit Tipper Entry' : '🚚 Tipper Entry Form'}</Text>
+                        <Text style={styles.subtitle}>{isEdit ? 'Update trip details' : 'Record Tipper trips and materials'}</Text>
                     </View>
 
                     {/* Vehicle Info Section */}
@@ -206,7 +217,7 @@ export const TipperFormScreen = ({ navigation }) => {
                             style={styles.buttonHalf}
                         />
                         <CustomButton
-                            title={loading ? 'Submitting...' : 'Submit Entry'}
+                            title={loading ? 'Processing...' : (isEdit ? 'Update Entry' : 'Submit Entry')}
                             icon="✓"
                             onPress={handleSubmit}
                             loading={loading}

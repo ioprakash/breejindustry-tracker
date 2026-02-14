@@ -14,7 +14,7 @@ import { theme } from '../styles/theme';
 import { getJCBEntries, getTipperEntries, getDieselEntries, getExpenseEntries } from '../services/api';
 import { formatDate, formatNumber } from '../utils/calculations';
 
-export const DashboardScreen = () => {
+export const DashboardScreen = ({ navigation }) => {
     const [activeTab, setActiveTab] = useState('jcb');
     const [jcbEntries, setJcbEntries] = useState([]);
     const [tipperEntries, setTipperEntries] = useState([]);
@@ -62,7 +62,11 @@ export const DashboardScreen = () => {
     );
 
     const JCBItem = ({ item }) => (
-        <View style={styles.card}>
+        <TouchableOpacity
+            style={styles.card}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('JCBForm', { initialData: item, isEdit: true })}
+        >
             <View style={[styles.cardAccent, { backgroundColor: theme.colors.primary }]} />
             <View style={styles.cardContent}>
                 <View style={styles.cardHeader}>
@@ -77,7 +81,7 @@ export const DashboardScreen = () => {
                         <InfoRow label="Customer" value={item.customerName} />
                     ) : null}
                     {item.customerNumber ? (
-                        <TouchableOpacity onPress={() => Linking.openURL(`tel:${item.customerNumber}`)}>
+                        <TouchableOpacity onPress={(e) => { e.stopPropagation(); Linking.openURL(`tel:${item.customerNumber}`); }}>
                             <InfoRow label="Phone" value={`📞 ${item.customerNumber}`} />
                         </TouchableOpacity>
                     ) : null}
@@ -88,13 +92,18 @@ export const DashboardScreen = () => {
                     <InfoRow label="Total" value={`₹${formatNumber(item.totalAmount)}`} bold />
                     <InfoRow label="Received" value={`₹${formatNumber(item.receivedAmount || 0)}`} bold color={theme.colors.success} />
                     <InfoRow label="Due" value={`₹${formatNumber(item.dueAmount || 0)}`} bold color={theme.colors.danger} />
+                    <Text style={styles.editPrompt}>Tap to Edit record ✏️</Text>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     const TipperItem = ({ item }) => (
-        <View style={styles.card}>
+        <TouchableOpacity
+            style={styles.card}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('TipperForm', { initialData: item, isEdit: true })}
+        >
             <View style={[styles.cardAccent, { backgroundColor: theme.colors.secondary }]} />
             <View style={styles.cardContent}>
                 <View style={styles.cardHeader}>
@@ -109,7 +118,7 @@ export const DashboardScreen = () => {
                         <InfoRow label="Customer" value={item.customerName} />
                     ) : null}
                     {item.customerNumber ? (
-                        <TouchableOpacity onPress={() => Linking.openURL(`tel:${item.customerNumber}`)}>
+                        <TouchableOpacity onPress={(e) => { e.stopPropagation(); Linking.openURL(`tel:${item.customerNumber}`); }}>
                             <InfoRow label="Phone" value={`📞 ${item.customerNumber}`} />
                         </TouchableOpacity>
                     ) : null}
@@ -117,9 +126,10 @@ export const DashboardScreen = () => {
                     <InfoRow label="Loading" value={item.loadingPlace || 'N/A'} />
                     <InfoRow label="Unloading" value={item.unloadingPlace || 'N/A'} />
                     <InfoRow label="CFT/Trip" value={item.cftTrip || 'N/A'} />
+                    <Text style={styles.editPrompt}>Tap to Edit record ✏️</Text>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     const DieselItem = ({ item }) => (
@@ -402,6 +412,13 @@ const styles = StyleSheet.create({
     infoValueBold: {
         fontWeight: theme.fontWeight.bold,
         fontSize: theme.fontSize.md,
+    },
+    editPrompt: {
+        fontSize: 10,
+        color: theme.colors.primary,
+        fontStyle: 'italic',
+        marginTop: 10,
+        alignSelf: 'flex-end',
     },
     divider: {
         height: 1,

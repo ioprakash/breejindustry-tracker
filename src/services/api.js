@@ -12,9 +12,9 @@ import {
     getCachedExpenseData,
     cacheStats,
     getCachedStats,
+    saveData,
 } from './storage';
 
-// Replace this with your deployed Google Apps Script URL
 const API_URL = 'https://script.google.com/macros/s/AKfycbxubMOm8TjBOzgOzhazJ2-heLKddQpVI9-kK6Tea1zZlRQlIeI1h0Z8VDXUZarh5sOe-Q/exec';
 
 // Check if online
@@ -54,6 +54,10 @@ export const submitJCBEntry = async (data, skipQueue = false) => {
         });
 
         const result = await response.json();
+        if (result.success) {
+            // Track last entry for editing
+            await saveData('@last_jcb_entry', { ...data, timestamp: result.timestamp });
+        }
         return { success: result.success, queued: false };
     } catch (error) {
         console.error('Error submitting JCB entry:', error);
@@ -85,6 +89,9 @@ export const submitTipperEntry = async (data, skipQueue = false) => {
         });
 
         const result = await response.json();
+        if (result.success) {
+            await saveData('@last_tipper_entry', { ...data, timestamp: result.timestamp });
+        }
         return { success: result.success, queued: false };
     } catch (error) {
         console.error('Error submitting Tipper entry:', error);
@@ -158,10 +165,31 @@ export const submitExpenseEntry = async (data, skipQueue = false) => {
     }
 };
 
+// UNIVERSAL UPDATE
+export const updateEntry = async (sheetName, originalTimestamp, updatedData) => {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'updateEntry',
+                data: {
+                    sheetName,
+                    originalEntryTime: originalTimestamp,
+                    ...updatedData
+                }
+            }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Update failed:', error);
+        return { success: false, error: 'Connection failure' };
+    }
+};
+
 // Get JCB Entries
 export const getJCBEntries = async () => {
     try {
-        // Try to get from API
         const response = await fetch(`${API_URL}?action=getJCB`);
         const result = await response.json();
 
@@ -170,11 +198,9 @@ export const getJCBEntries = async () => {
             return result.data;
         }
 
-        // Fallback to cache
         return await getCachedJCBData() || [];
     } catch (error) {
         console.error('Error getting JCB entries:', error);
-        // Return cached data on error
         return await getCachedJCBData() || [];
     }
 };
@@ -257,7 +283,6 @@ export const processSyncQueue = async () => {
     if (queue.length === 0) return;
 
     console.log(`Processing ${queue.length} queued items...`);
-    const failed = [];
 
     for (const item of queue) {
         try {
@@ -272,14 +297,7 @@ export const processSyncQueue = async () => {
             }
         } catch (error) {
             console.error('Failed to sync item:', error);
-            failed.push(item);
         }
     }
-
-    // Save only failed items back to queue
-    if (failed.length > 0) {
-        await addToSyncQueue('failed', failed);
-    } else {
-        await clearSyncQueue();
-    }
+    await clearSyncQueue();
 };

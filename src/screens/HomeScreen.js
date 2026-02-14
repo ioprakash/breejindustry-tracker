@@ -33,10 +33,27 @@ export const HomeScreen = ({ navigation }) => {
     const [stats, setStats] = useState({ jcbCount: 0, tipperCount: 0, totalDue: 0 });
     const [refreshing, setRefreshing] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [lastEntries, setLastEntries] = useState({ jcb: null, tipper: null });
+    const [todayCounts, setTodayCounts] = useState({ jcbCount: 0, tipperCount: 0 });
 
     const checkRole = async () => {
         const role = await getData('@user_role');
         setIsAdmin(role === 'admin');
+
+        // Load last entries for editing
+        const lastJcb = await getData('@last_jcb_entry');
+        const lastTipper = await getData('@last_tipper_entry');
+        setLastEntries({ jcb: lastJcb, tipper: lastTipper });
+
+        // Calculate today's counts locally for employee
+        const jcbData = await getData('@jcb_cache') || [];
+        const tipperData = await getData('@tipper_cache') || [];
+        const today = new Date().toISOString().split('T')[0];
+
+        setTodayCounts({
+            jcbCount: jcbData.filter(e => e.date === today).length,
+            tipperCount: tipperData.filter(e => e.date === today).length
+        });
     };
 
     const handleLogout = async () => {
@@ -192,31 +209,54 @@ export const HomeScreen = ({ navigation }) => {
                 </View>
 
                 {/* Quick Stats */}
-                <Text style={styles.sectionTitle}>Overview</Text>
+                <Text style={styles.sectionTitle}>{isAdmin ? 'System Overview' : 'Your Today\'s Activity'}</Text>
                 <View style={styles.statsGrid}>
-                    {isAdmin && (
-                        <>
-                            <StatCard
-                                icon="🚜"
-                                value={stats.jcbCount || 0}
-                                label="JCB Entries"
-                                colors={theme.gradients.primary}
-                            />
-                            <StatCard
-                                icon="🚚"
-                                value={stats.tipperCount || 0}
-                                label="Tipper Trips"
-                                colors={theme.gradients.secondary}
-                            />
-                        </>
-                    )}
                     <StatCard
-                        icon="💰"
-                        value={`₹${formatNumber(stats.totalDue || 0)}`}
-                        label="Total Due"
-                        colors={['#ef4444', '#dc2626']}
+                        icon="🚜"
+                        value={isAdmin ? stats.jcbCount : todayCounts.jcbCount}
+                        label={isAdmin ? "Total JCB Entries" : "Today's JCB Entries"}
+                        colors={theme.gradients.primary}
                     />
+                    <StatCard
+                        icon="🚚"
+                        value={isAdmin ? stats.tipperCount : todayCounts.tipperCount}
+                        label={isAdmin ? "Total Tipper Trips" : "Today's Trips"}
+                        colors={theme.gradients.secondary}
+                    />
+                    {isAdmin && (
+                        <StatCard
+                            icon="💰"
+                            value={`₹${formatNumber(stats.totalDue || 0)}`}
+                            label="Total Due"
+                            colors={['#ef4444', '#dc2626']}
+                        />
+                    )}
                 </View>
+
+                {/* Edit Last Entry (For Employees) */}
+                {!isAdmin && (lastEntries.jcb || lastEntries.tipper) && (
+                    <View style={{ marginTop: 20, marginHorizontal: 20 }}>
+                        <Text style={styles.sectionTitle}>Re-edit Last Entry</Text>
+                        <View style={styles.menuGrid}>
+                            {lastEntries.jcb && (
+                                <TouchableOpacity
+                                    style={styles.editButton}
+                                    onPress={() => navigation.navigate('JCBForm', { initialData: lastEntries.jcb, isEdit: true })}
+                                >
+                                    <Text style={styles.editText}>✏️ Edit Last JCB</Text>
+                                </TouchableOpacity>
+                            )}
+                            {lastEntries.tipper && (
+                                <TouchableOpacity
+                                    style={styles.editButton}
+                                    onPress={() => navigation.navigate('TipperForm', { initialData: lastEntries.tipper, isEdit: true })}
+                                >
+                                    <Text style={styles.editText}>✏️ Edit Last Tipper</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    </View>
+                )}
 
                 {/* Version Footer */}
                 <Text style={styles.versionText}>
@@ -396,6 +436,19 @@ const styles = StyleSheet.create({
     statsGrid: {
         paddingHorizontal: theme.spacing.lg,
         gap: theme.spacing.md,
+    },
+    editButton: {
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        padding: 12,
+        borderRadius: theme.borderRadius.md,
+        flex: 1,
+        alignItems: 'center',
+    },
+    editText: {
+        fontWeight: 'bold',
+        color: theme.colors.textSecondary,
     },
     versionText: {
         textAlign: 'center',
