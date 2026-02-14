@@ -76,13 +76,8 @@ export const downloadAndInstallUpdate = async (downloadUrl, onProgress) => {
 // Browser Download: Open the download URL in the browser
 export const openInBrowser = async (downloadUrl) => {
     try {
-        const supported = await Linking.canOpenURL(downloadUrl);
-        if (supported) {
-            await Linking.openURL(downloadUrl);
-            return true;
-        } else {
-            throw new Error('Cannot open URL');
-        }
+        await Linking.openURL(downloadUrl);
+        return true;
     } catch (error) {
         console.error('Browser download failed:', error);
         Alert.alert(
