@@ -239,6 +239,73 @@ export const getQuickStats = async () => {
     return await getCachedStats() || { jcbCount: 0, tipperCount: 0, totalDue: 0 };
 };
 
+// Submit Attendance
+export const submitAttendance = async (data) => {
+    try {
+        const userName = await getData('@user_name');
+        const finalData = { ...data, employeeName: userName };
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addAttendance', data: finalData }),
+        });
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error submitting Attendance:', error);
+        throw error;
+    }
+};
+
+// Get Attendance Entries
+export const getAttendanceEntries = async () => {
+    return await fetchWithAuth('getAttendance');
+};
+
+// Approve Attendance
+export const approveAttendance = async (actualEntryTime) => {
+    try {
+        const adminName = await getData('@user_name');
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'approveAttendance',
+                data: { actualEntryTime, adminName }
+            }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Approval failed:', error);
+        return { success: false, error: 'Connection failure' };
+    }
+};
+
+// Get Employee List
+export const getEmployees = async () => {
+    return await fetchWithAuth('getEmployees');
+};
+
+// Add New Employee
+export const addEmployee = async (name, password) => {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'addEmployee',
+                data: { name, password }
+            }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Add employee failed:', error);
+        return { success: false, error: 'Connection failure' };
+    }
+};
+
 // Process Sync Queue
 export const processSyncQueue = async () => {
     const queue = await getSyncQueue();
@@ -249,6 +316,7 @@ export const processSyncQueue = async () => {
             else if (item.type === 'tipper') await submitTipperEntry(item.data, true);
             else if (item.type === 'diesel') await submitDieselEntry(item.data, true);
             else if (item.type === 'expense') await submitExpenseEntry(item.data, true);
+            else if (item.type === 'attendance') await submitAttendance(item.data);
         } catch (error) {
             console.error('Failed to sync item:', error);
         }

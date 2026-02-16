@@ -2,7 +2,7 @@
   "expo": {
     "name": "Brij Industry Tracker",
     "slug": "brij-industry-tracker",
-    "version": "1.7.8",
+    "version": "1.7.9",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -29,7 +29,7 @@
         "android.permission.ACCESS_FINE_LOCATION"
       ],
       "package": "np.com.stb.tracker",
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "favicon": "./assets/favicon.png"

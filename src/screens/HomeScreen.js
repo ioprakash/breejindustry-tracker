@@ -176,6 +176,14 @@ export const HomeScreen = ({ navigation }) => {
                 <Text style={styles.sectionTitle}>Quick Actions</Text>
                 <View style={styles.menuGrid}>
                     <MenuCard
+                        title="Attendance"
+                        subtitle="In / Out"
+                        icon="🕒"
+                        colors={['#10b981', '#059669']}
+                        onPress={() => navigation.navigate('Attendance')}
+                        isHalf
+                    />
+                    <MenuCard
                         title="JCB Entry"
                         subtitle="Log work"
                         icon="🚜"
@@ -189,6 +197,14 @@ export const HomeScreen = ({ navigation }) => {
                         icon="🚚"
                         colors={theme.gradients.secondary}
                         onPress={() => navigation.navigate('TipperForm')}
+                        isHalf
+                    />
+                    <MenuCard
+                        title="Diesel"
+                        subtitle="Log fuel"
+                        icon="⛽"
+                        colors={theme.gradients.warning}
+                        onPress={() => navigation.navigate('DieselEntry')}
                         isHalf
                     />
                     {isAdmin && (
@@ -209,16 +225,24 @@ export const HomeScreen = ({ navigation }) => {
                                 onPress={() => navigation.navigate('ExpenseForm')}
                                 isHalf
                             />
+                            <MenuCard
+                                title="Approve"
+                                subtitle="Attendance"
+                                icon="✅"
+                                colors={['#0ea5e9', '#0284c7']}
+                                onPress={() => navigation.navigate('AdminAttendance')}
+                                isHalf
+                            />
+                            <MenuCard
+                                title="Employees"
+                                subtitle="Manage users"
+                                icon="👥"
+                                colors={['#f43f5e', '#e11d48']}
+                                onPress={() => navigation.navigate('ManageEmployees')}
+                                isHalf
+                            />
                         </>
                     )}
-                    <MenuCard
-                        title="Diesel"
-                        subtitle="Log fuel"
-                        icon="⛽"
-                        colors={theme.gradients.warning}
-                        onPress={() => navigation.navigate('DieselEntry')}
-                        isHalf
-                    />
                 </View>
 
                 {/* Quick Stats */}
