@@ -5,8 +5,9 @@ import { Alert } from 'react-native';
 const UPDATE_CHECK_URL = 'http://192.168.10.254:8080/version.json';
 const LAST_CHECK_KEY = '@last_update_check';
 const CHECK_INTERVAL = 1 * 60 * 1000; // 1 minute for local testing
+import Constants from 'expo-constants';
 // Get current app version from app.json
-export const CURRENT_VERSION = '1.0.0';
+export const CURRENT_VERSION = Constants.expoConfig?.version || '1.8.0';
 
 // Check if update is available
 export const checkForUpdates = async () => {

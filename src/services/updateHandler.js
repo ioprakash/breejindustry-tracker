@@ -3,8 +3,8 @@ import * as IntentLauncher from 'expo-intent-launcher';
 import Constants from 'expo-constants';
 import { Alert, Platform, Linking } from 'react-native';
 
-// Hardcoded version truth for this binary
-const CURRENT_VERSION = '1.7.9';
+// Use dynamic version from app.json with fallback
+const CURRENT_VERSION = Constants.expoConfig?.version || '1.8.0';
 
 export const checkForUpdates = async (apiUrl) => {
     try {

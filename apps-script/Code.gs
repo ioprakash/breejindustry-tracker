@@ -10,12 +10,12 @@ const EMPLOYEES_SHEET_NAME = 'Employees_List';
 const LEDGER_PARTIES_SHEET_NAME = 'Ledger_Parties';
 const LEDGER_ENTRIES_SHEET_NAME = 'Ledger_Entries';
 
-const LATEST_VERSION = '1.8.0';
-const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.8.0.apk';
+const LATEST_VERSION = '1.8.1';
+const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.8.1.apk';
 
 // Role-based Passwords
 const ADMIN_PASSWORD = "667";
-
+ 
 function JSON_RES(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
