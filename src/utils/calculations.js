@@ -13,8 +13,13 @@ export const calculateDueAmount = (totalAmount, receivedAmount) => {
 };
 
 export const formatNumber = (num) => {
-    if (!num) return '0';
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (num === null || num === undefined || num === '') return '0.00';
+    const parsed = parseFloat(num);
+    if (isNaN(parsed)) return '0.00';
+    const fixed = parsed.toFixed(2);
+    const parts = fixed.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
 };
 
 export const formatDate = (date) => {

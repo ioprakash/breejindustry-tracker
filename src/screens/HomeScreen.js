@@ -241,6 +241,14 @@ export const HomeScreen = ({ navigation }) => {
                                 onPress={() => navigation.navigate('ManageEmployees')}
                                 isHalf
                             />
+                            <MenuCard
+                                title="Ledger"
+                                subtitle="Party accounts"
+                                icon="📒"
+                                colors={['#6366f1', '#4f46e5']}
+                                onPress={() => navigation.navigate('Ledger')}
+                                isHalf
+                            />
                         </>
                     )}
                 </View>

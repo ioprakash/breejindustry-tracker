@@ -7,9 +7,11 @@ const DIESEL_SHEET_NAME = 'Diesel_Logs';
 const EXPENSE_SHEET_NAME = 'Daily_Expenses';
 const ATTENDANCE_SHEET_NAME = 'Attendance_Logs';
 const EMPLOYEES_SHEET_NAME = 'Employees_List';
+const LEDGER_PARTIES_SHEET_NAME = 'Ledger_Parties';
+const LEDGER_ENTRIES_SHEET_NAME = 'Ledger_Entries';
 
-const LATEST_VERSION = '1.7.9';
-const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.7.9.apk';
+const LATEST_VERSION = '1.8.0';
+const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.8.0.apk';
 
 // Role-based Passwords
 const ADMIN_PASSWORD = "667";
@@ -28,7 +30,9 @@ function checkAndFixHeaders(sheetName) {
     [DIESEL_SHEET_NAME]: ['Date', 'Vehicle No', 'Diesel (Ltr)', 'Cost', 'Petrol Pump Name', 'Meter Reading', 'Paid By', 'Remarks', 'Location Link', 'Entered By', 'Actual Entry Time'],
     [EXPENSE_SHEET_NAME]: ['Date', 'Expense Mode', 'Expenses Description', 'Amount', 'Remark', 'Time', 'Entered By', 'Actual Entry Time'],
     [ATTENDANCE_SHEET_NAME]: ['Date', 'Employee Name', 'Type', 'Time', 'Location Link', 'Status', 'Approved By', 'Actual Entry Time'],
-    [EMPLOYEES_SHEET_NAME]: ['Name', 'Password']
+    [EMPLOYEES_SHEET_NAME]: ['Name', 'Password'],
+    [LEDGER_PARTIES_SHEET_NAME]: ['Party Name'],
+    [LEDGER_ENTRIES_SHEET_NAME]: ['Date', 'Party Name', 'Type', 'Amount', 'Description', 'Remark', 'Entered By', 'Actual Entry Time']
   };
 
   const expected = headersMap[sheetName];
@@ -99,6 +103,32 @@ function doGet(e) {
     }
 
     if (action === 'getStats') return getQuickStats(role, userName);
+
+    // Ledger GET actions
+    if (action === 'getLedgerParties') {
+      const sheet = checkAndFixHeaders(LEDGER_PARTIES_SHEET_NAME);
+      const data = sheet.getDataRange().getValues();
+      const parties = data.slice(1).map(r => r[0]).filter(n => n);
+      return JSON_RES({ success: true, data: parties });
+    }
+
+    if (action === 'getLedgerEntries') {
+      const partyName = e.parameter.partyName;
+      const sheet = checkAndFixHeaders(LEDGER_ENTRIES_SHEET_NAME);
+      const data = sheet.getDataRange().getValues();
+      if (data.length <= 1) return JSON_RES({ success: true, data: [] });
+      const headers = data[0];
+      const partyIdx = headers.indexOf('Party Name');
+      let entries = data.slice(1)
+        .filter(row => row[partyIdx] === partyName)
+        .map(row => {
+          let obj = {};
+          headers.forEach((h, i) => obj[toCamelCase(h)] = row[i]);
+          return obj;
+        });
+      return JSON_RES({ success: true, data: entries });
+    }
+
     return JSON_RES({ success: false, error: 'Invalid action' });
   } catch (err) { return JSON_RES({ success: false, error: err.toString() }); }
 }
@@ -136,6 +166,60 @@ function doPost(e) {
         }
       }
       return JSON_RES({ success: false, error: 'Attendance record not found' });
+    }
+
+    // Ledger POST actions
+    if (action === 'addLedgerParty') {
+      const sheet = checkAndFixHeaders(LEDGER_PARTIES_SHEET_NAME);
+      const existing = sheet.getDataRange().getValues().slice(1).map(r => r[0]);
+      if (existing.includes(data.partyName)) {
+        return JSON_RES({ success: false, error: 'Party already exists' });
+      }
+      sheet.appendRow([data.partyName]);
+      return JSON_RES({ success: true });
+    }
+
+    if (action === 'addLedger') {
+      const sheet = checkAndFixHeaders(LEDGER_ENTRIES_SHEET_NAME);
+      const now = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+      const entryBy = data.enteredBy || 'Unknown';
+      const row = [
+        data.date,
+        data.partyName,
+        data.type || 'DR',
+        data.amount || '0',
+        data.description || '',
+        data.remark || '',
+        entryBy,
+        now
+      ];
+      sheet.appendRow(row);
+      return JSON_RES({ success: true, actualEntryTime: now });
+    }
+
+    if (action === 'updateLedgerEntry') {
+      const sheet = checkAndFixHeaders(LEDGER_ENTRIES_SHEET_NAME);
+      const values = sheet.getDataRange().getValues();
+      const headers = values[0];
+      const timeIdx = headers.indexOf('Actual Entry Time');
+      
+      for (let i = 1; i < values.length; i++) {
+        if (values[i][timeIdx] === data.originalEntryTime) {
+          const row = [
+            data.date,
+            data.partyName,
+            data.type || 'DR',
+            data.amount || '0',
+            data.description || '',
+            data.remark || '',
+            data.userName || values[i][headers.indexOf('Entered By')],
+            data.originalEntryTime
+          ];
+          sheet.getRange(i + 1, 1, 1, row.length).setValues([row]);
+          return JSON_RES({ success: true });
+        }
+      }
+      return JSON_RES({ success: false, error: 'Ledger entry not found' });
     }
 
     return JSON_RES({ success: false, error: 'Invalid POST action' });

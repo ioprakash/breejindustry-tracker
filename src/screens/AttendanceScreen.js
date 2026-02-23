@@ -62,7 +62,11 @@ export const AttendanceScreen = ({ navigation }) => {
 
             const result = await submitAttendance(data);
             if (result.success) {
-                Alert.alert('Success', `Attendance ${type} requested for approval.`, [
+                const message = result.queued
+                    ? `Attendance ${type} saved offline. It will sync automatically when you are online.`
+                    : `Attendance ${type} requested for approval.`;
+
+                Alert.alert(result.queued ? 'Offline' : 'Success', message, [
                     { text: 'OK', onPress: () => loadHistory() }
                 ]);
             } else {

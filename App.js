@@ -11,6 +11,7 @@ import { ExpenseFormScreen } from './src/screens/ExpenseFormScreen';
 import { AttendanceScreen } from './src/screens/AttendanceScreen';
 import { AdminAttendanceScreen } from './src/screens/AdminAttendanceScreen';
 import { ManageEmployeesScreen } from './src/screens/ManageEmployeesScreen';
+import { LedgerScreen } from './src/screens/LedgerScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { theme } from './src/styles/theme';
 import { UpdateModal } from './src/components/UpdateModal';
@@ -118,6 +119,11 @@ export default function App() {
             name="ManageEmployees"
             component={ManageEmployeesScreen}
             options={{ title: 'Employee Management' }}
+          />
+          <Stack.Screen
+            name="Ledger"
+            component={LedgerScreen}
+            options={{ title: 'Ledger' }}
           />
         </Stack.Navigator>
       </NavigationContainer>

@@ -240,10 +240,15 @@ export const getQuickStats = async () => {
 };
 
 // Submit Attendance
-export const submitAttendance = async (data) => {
+export const submitAttendance = async (data, skipQueue = false) => {
     try {
         const userName = await getData('@user_name');
         const finalData = { ...data, employeeName: userName };
+
+        if (!isOnline() && !skipQueue) {
+            await addToSyncQueue('attendance', finalData);
+            return { success: true, queued: true };
+        }
 
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -252,9 +257,13 @@ export const submitAttendance = async (data) => {
         });
 
         const result = await response.json();
-        return result;
+        return { ...result, queued: false };
     } catch (error) {
         console.error('Error submitting Attendance:', error);
+        if (!skipQueue) {
+            await addToSyncQueue('attendance', { ...data, employeeName: await getData('@user_name') });
+            return { success: true, queued: true };
+        }
         throw error;
     }
 };
@@ -323,3 +332,97 @@ export const processSyncQueue = async () => {
     }
     await clearSyncQueue();
 };
+
+// ─── LEDGER APIs ─────────────────────────────────────────────
+
+// Get all party names
+export const getLedgerParties = async () => {
+    try {
+        const result = await fetchWithAuth('getLedgerParties');
+        if (result.success) {
+            return result.data || [];
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching ledger parties:', error);
+        return [];
+    }
+};
+
+// Add a new party
+export const addLedgerParty = async (partyName) => {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'addLedgerParty',
+                data: { partyName }
+            }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Error adding ledger party:', error);
+        return { success: false, error: 'Connection failure' };
+    }
+};
+
+// Get ledger entries for a specific party
+export const getLedgerEntries = async (partyName) => {
+    try {
+        const userName = await getData('@user_name');
+        const role = await getData('@user_role');
+        const url = `${API_URL}?action=getLedgerEntries&partyName=${encodeURIComponent(partyName)}&userName=${encodeURIComponent(userName)}&role=${role}`;
+        const response = await fetch(url);
+        const result = await response.json();
+        if (result.success) {
+            return result.data || [];
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching ledger entries:', error);
+        return [];
+    }
+};
+
+// Add a ledger entry
+export const addLedgerEntry = async (data) => {
+    try {
+        const finalData = await attachUserInfo(data);
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addLedger', data: finalData }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Error adding ledger entry:', error);
+        return { success: false, error: 'Connection failure' };
+    }
+};
+
+// Update a ledger entry
+export const updateLedgerEntry = async (originalEntryTime, updatedData) => {
+    try {
+        const userName = await getData('@user_name');
+        const userRole = await getData('@user_role');
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'updateLedgerEntry',
+                data: {
+                    originalEntryTime,
+                    userName,
+                    userRole,
+                    ...updatedData,
+                }
+            }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Error updating ledger entry:', error);
+        return { success: false, error: 'Connection failure' };
+    }
+};
+
