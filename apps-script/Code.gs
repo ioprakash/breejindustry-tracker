@@ -181,23 +181,20 @@ function doPost(e) {
 
     if (action === 'addLedger') {
       const sheet = checkAndFixHeaders(LEDGER_ENTRIES_SHEET_NAME);
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
       const now = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
       const entryBy = data.enteredBy || 'Unknown';
       var photoUrl = data.photoLink || '';
       if (data.photoBase64 && data.photoBase64.length > 0) {
         photoUrl = uploadPhotoToDrive(data.photoBase64, 'Ledger_' + data.partyName + '_' + now.replace(/[\/:]/g, '-'));
       }
-      const row = [
-        data.date,
-        data.partyName,
-        data.type || 'DR',
-        data.amount || '0',
-        data.description || '',
-        data.remark || '',
-        photoUrl,
-        entryBy,
-        now
-      ];
+      var valueMap = {
+        'Date': data.date, 'Party Name': data.partyName,
+        'Type': data.type || 'DR', 'Amount': data.amount || '0',
+        'Description': data.description || '', 'Remark': data.remark || '',
+        'Photo': photoUrl, 'Entered By': entryBy, 'Actual Entry Time': now
+      };
+      var row = headers.map(function(h) { return valueMap[h] !== undefined ? valueMap[h] : ''; });
       sheet.appendRow(row);
       return JSON_RES({ success: true, actualEntryTime: now });
     }
@@ -217,17 +214,15 @@ function doPost(e) {
           } else if (data.photoLink !== undefined) {
             photoUrl = data.photoLink || '';
           }
-          const row = [
-            data.date,
-            data.partyName,
-            data.type || 'DR',
-            data.amount || '0',
-            data.description || '',
-            data.remark || '',
-            photoUrl,
-            data.userName || values[i][headers.indexOf('Entered By')],
-            data.originalEntryTime
-          ];
+          var valueMap = {
+            'Date': data.date, 'Party Name': data.partyName,
+            'Type': data.type || 'DR', 'Amount': data.amount || '0',
+            'Description': data.description || '', 'Remark': data.remark || '',
+            'Photo': photoUrl,
+            'Entered By': data.userName || values[i][headers.indexOf('Entered By')],
+            'Actual Entry Time': data.originalEntryTime
+          };
+          var row = headers.map(function(h) { return valueMap[h] !== undefined ? valueMap[h] : ''; });
           sheet.getRange(i + 1, 1, 1, row.length).setValues([row]);
           return JSON_RES({ success: true });
         }
@@ -241,10 +236,10 @@ function doPost(e) {
 
 function addEntry(sheetName, data) {
   const sheet = checkAndFixHeaders(sheetName);
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const now = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
   const entryTime = data.address ? data.address + " (" + now + ")" : now;
   const entryBy = data.enteredBy || 'Unknown';
-  let row = [];
 
   // Upload photo to Google Drive if base64 data is present
   var photoUrl = '';
@@ -252,18 +247,57 @@ function addEntry(sheetName, data) {
     photoUrl = uploadPhotoToDrive(data.photoBase64, sheetName + '_' + (data.gadiNo || data.vehicleNo || '') + '_' + now.replace(/[\/:]/g, '-'));
   }
 
+  // Build value map based on sheet type
+  var valueMap = {};
   if (sheetName === JCB_SHEET_NAME) {
-    row = [data.date, data.gadiNo, data.driverName, data.customerName || data.partyName || '', data.customerNumber || '', data.runMode || '', data.workDetail || '', data.startMtr || '', data.stopMtr || '', data.totalHour || data.tipCount || '0', data.startMtrDay || '', data.stopMtrDay || '', data.rate, data.totalAmount, data.receivedAmount || data.paidAmount || '0', data.dueAmount || '0', photoUrl, data.locationLink || '', entryBy, entryTime];
+    valueMap = {
+      'Date': data.date, 'Gadi No': data.gadiNo, 'Driver Name': data.driverName,
+      'Customer/Party Name': data.customerName || data.partyName || '', 'Phone': data.customerNumber || '',
+      'Run Mode': data.runMode || '', 'Work Detail': data.workDetail || '',
+      'Start Mtr': data.startMtr || '', 'Stop Mtr': data.stopMtr || '',
+      'Total Hour/Count': data.totalHour || data.tipCount || '0',
+      'Day Start Mtr': data.startMtrDay || '', 'Day Stop Mtr': data.stopMtrDay || '',
+      'Rate': data.rate, 'Total Amount': data.totalAmount,
+      'Received Amount': data.receivedAmount || data.paidAmount || '0',
+      'Due Amount': data.dueAmount || '0', 'Photo': photoUrl,
+      'Location Link': data.locationLink || '', 'Entered By': entryBy, 'Actual Entry Time': entryTime
+    };
   } else if (sheetName === TIPPER_SHEET_NAME) {
-    row = [data.date, data.gadiNo, data.driverName, data.customerName || '', data.customerNumber || '', data.material || '', data.loadingPlace || '', data.unloadingPlace || '', data.cftTrip || '', photoUrl, data.locationLink || '', entryBy, entryTime];
+    valueMap = {
+      'Date': data.date, 'Gadi No': data.gadiNo, 'Driver Name': data.driverName,
+      'Customer Name': data.customerName || '', 'Customer Phone': data.customerNumber || '',
+      'Material': data.material || '', 'Loading Place': data.loadingPlace || '',
+      'Unloading Place': data.unloadingPlace || '', 'CFT/Trip': data.cftTrip || '',
+      'Photo': photoUrl, 'Location Link': data.locationLink || '',
+      'Entered By': entryBy, 'Actual Entry Time': entryTime
+    };
   } else if (sheetName === DIESEL_SHEET_NAME) {
-    row = [data.date, data.gadiNo || data.vehicleNo || '', data.dieselLtr || '0', data.dieselCost || '0', data.petrolPumpName || '', data.dieselMtr || data.meterReading || '', data.dieselPaidBy || data.paidBy || '', data.remarks || '', photoUrl, data.locationLink || '', entryBy, entryTime];
+    valueMap = {
+      'Date': data.date, 'Vehicle No': data.gadiNo || data.vehicleNo || '',
+      'Diesel (Ltr)': data.dieselLtr || '0', 'Cost': data.dieselCost || '0',
+      'Petrol Pump Name': data.petrolPumpName || '',
+      'Meter Reading': data.dieselMtr || data.meterReading || '',
+      'Paid By': data.dieselPaidBy || data.paidBy || '', 'Remarks': data.remarks || '',
+      'Photo': photoUrl, 'Location Link': data.locationLink || '',
+      'Entered By': entryBy, 'Actual Entry Time': entryTime
+    };
   } else if (sheetName === EXPENSE_SHEET_NAME) {
-    row = [data.date, data.expenseMode, data.expensesDescription || data.description || '', data.amount, data.remark || '', new Date().toISOString(), entryBy, entryTime];
+    valueMap = {
+      'Date': data.date, 'Expense Mode': data.expenseMode,
+      'Expenses Description': data.expensesDescription || data.description || '',
+      'Amount': data.amount, 'Remark': data.remark || '',
+      'Time': new Date().toISOString(), 'Entered By': entryBy, 'Actual Entry Time': entryTime
+    };
   } else if (sheetName === ATTENDANCE_SHEET_NAME) {
-    row = [data.date, data.employeeName, data.type, data.time, data.locationLink || '', 'Pending', '', entryTime];
+    valueMap = {
+      'Date': data.date, 'Employee Name': data.employeeName, 'Type': data.type,
+      'Time': data.time, 'Location Link': data.locationLink || '',
+      'Status': 'Pending', 'Approved By': '', 'Actual Entry Time': entryTime
+    };
   }
 
+  // Build row based on actual header order in the sheet
+  var row = headers.map(function(h) { return valueMap[h] !== undefined ? valueMap[h] : ''; });
   sheet.appendRow(row);
   return JSON_RES({ success: true, actualEntryTime: entryTime });
 }
@@ -288,14 +322,45 @@ function updateEntry(data) {
         photoUrl = uploadPhotoToDrive(data.photoBase64, data.sheetName + '_' + (data.gadiNo || '') + '_' + data.originalEntryTime.replace(/[\/:]/g, '-'));
       }
 
-      let row = [];
+      // Build value map based on sheet type
+      var valueMap = {};
       if (data.sheetName === JCB_SHEET_NAME) {
-        row = [data.date, data.gadiNo, data.driverName, data.customerName || data.partyName || '', data.customerNumber || '', data.runMode || '', data.workDetail || '', data.startMtr || '', data.stopMtr || '', data.totalHour || data.tipCount || '0', data.startMtrDay || '', data.stopMtrDay || '', data.rate, data.totalAmount, data.receivedAmount || data.paidAmount || '0', data.dueAmount || '0', photoUrl, data.locationLink || '', data.userName, data.originalEntryTime];
+        valueMap = {
+          'Date': data.date, 'Gadi No': data.gadiNo, 'Driver Name': data.driverName,
+          'Customer/Party Name': data.customerName || data.partyName || '', 'Phone': data.customerNumber || '',
+          'Run Mode': data.runMode || '', 'Work Detail': data.workDetail || '',
+          'Start Mtr': data.startMtr || '', 'Stop Mtr': data.stopMtr || '',
+          'Total Hour/Count': data.totalHour || data.tipCount || '0',
+          'Day Start Mtr': data.startMtrDay || '', 'Day Stop Mtr': data.stopMtrDay || '',
+          'Rate': data.rate, 'Total Amount': data.totalAmount,
+          'Received Amount': data.receivedAmount || data.paidAmount || '0',
+          'Due Amount': data.dueAmount || '0', 'Photo': photoUrl,
+          'Location Link': data.locationLink || '', 'Entered By': data.userName,
+          'Actual Entry Time': data.originalEntryTime
+        };
       } else if (data.sheetName === TIPPER_SHEET_NAME) {
-        row = [data.date, data.gadiNo, data.driverName, data.customerName || '', data.customerNumber || '', data.material || '', data.loadingPlace || '', data.unloadingPlace || '', data.cftTrip || '', photoUrl, data.locationLink || '', data.userName, data.originalEntryTime];
+        valueMap = {
+          'Date': data.date, 'Gadi No': data.gadiNo, 'Driver Name': data.driverName,
+          'Customer Name': data.customerName || '', 'Customer Phone': data.customerNumber || '',
+          'Material': data.material || '', 'Loading Place': data.loadingPlace || '',
+          'Unloading Place': data.unloadingPlace || '', 'CFT/Trip': data.cftTrip || '',
+          'Photo': photoUrl, 'Location Link': data.locationLink || '',
+          'Entered By': data.userName, 'Actual Entry Time': data.originalEntryTime
+        };
       } else if (data.sheetName === DIESEL_SHEET_NAME) {
-        row = [data.date, data.gadiNo || data.vehicleNo || '', data.dieselLtr || '0', data.dieselCost || '0', data.petrolPumpName || '', data.dieselMtr || data.meterReading || '', data.dieselPaidBy || data.paidBy || '', data.remarks || '', photoUrl, data.locationLink || '', data.userName, data.originalEntryTime];
+        valueMap = {
+          'Date': data.date, 'Vehicle No': data.gadiNo || data.vehicleNo || '',
+          'Diesel (Ltr)': data.dieselLtr || '0', 'Cost': data.dieselCost || '0',
+          'Petrol Pump Name': data.petrolPumpName || '',
+          'Meter Reading': data.dieselMtr || data.meterReading || '',
+          'Paid By': data.dieselPaidBy || data.paidBy || '', 'Remarks': data.remarks || '',
+          'Photo': photoUrl, 'Location Link': data.locationLink || '',
+          'Entered By': data.userName, 'Actual Entry Time': data.originalEntryTime
+        };
       }
+
+      // Build row based on actual header order
+      var row = headers.map(function(h) { return valueMap[h] !== undefined ? valueMap[h] : ''; });
       sheet.getRange(i + 1, 1, 1, row.length).setValues([row]);
       return JSON_RES({ success: true });
     }
