@@ -10,8 +10,8 @@ const EMPLOYEES_SHEET_NAME = 'Employees_List';
 const LEDGER_PARTIES_SHEET_NAME = 'Ledger_Parties';
 const LEDGER_ENTRIES_SHEET_NAME = 'Ledger_Entries';
 
-const LATEST_VERSION = '1.8.2';
-const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.8.2.apk';
+const LATEST_VERSION = '1.8.3';
+const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.8.3.apk';
 
 // Role-based Passwords
 const ADMIN_PASSWORD = "667";
@@ -25,9 +25,9 @@ function checkAndFixHeaders(sheetName) {
   let sheet = ss.getSheetByName(sheetName);
   
   const headersMap = {
-    [JCB_SHEET_NAME]: ['Date', 'Gadi No', 'Driver Name', 'Customer/Party Name', 'Phone', 'Run Mode', 'Work Detail', 'Start Mtr', 'Stop Mtr', 'Total Hour/Count', 'Day Start Mtr', 'Day Stop Mtr', 'Rate', 'Total Amount', 'Received Amount', 'Due Amount', 'Location Link', 'Entered By', 'Actual Entry Time'],
+    [JCB_SHEET_NAME]: ['Date', 'Gadi No', 'Driver Name', 'Customer/Party Name', 'Phone', 'Run Mode', 'Work Detail', 'Start Mtr', 'Stop Mtr', 'Total Hour/Count', 'Day Start Mtr', 'Day Stop Mtr', 'Rate', 'Total Amount', 'Received Amount', 'Due Amount', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
     [TIPPER_SHEET_NAME]: ['Date', 'Gadi No', 'Driver Name', 'Customer Name', 'Customer Phone', 'Material', 'Loading Place', 'Unloading Place', 'CFT/Trip', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
-    [DIESEL_SHEET_NAME]: ['Date', 'Vehicle No', 'Diesel (Ltr)', 'Cost', 'Petrol Pump Name', 'Meter Reading', 'Paid By', 'Remarks', 'Location Link', 'Entered By', 'Actual Entry Time'],
+    [DIESEL_SHEET_NAME]: ['Date', 'Vehicle No', 'Diesel (Ltr)', 'Cost', 'Petrol Pump Name', 'Meter Reading', 'Paid By', 'Remarks', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
     [EXPENSE_SHEET_NAME]: ['Date', 'Expense Mode', 'Expenses Description', 'Amount', 'Remark', 'Time', 'Entered By', 'Actual Entry Time'],
     [ATTENDANCE_SHEET_NAME]: ['Date', 'Employee Name', 'Type', 'Time', 'Location Link', 'Status', 'Approved By', 'Actual Entry Time'],
     [EMPLOYEES_SHEET_NAME]: ['Name', 'Password'],
@@ -246,12 +246,18 @@ function addEntry(sheetName, data) {
   const entryBy = data.enteredBy || 'Unknown';
   let row = [];
 
+  // Upload photo to Google Drive if base64 data is present
+  var photoUrl = '';
+  if (data.photoBase64 && data.photoBase64.length > 0) {
+    photoUrl = uploadPhotoToDrive(data.photoBase64, sheetName + '_' + (data.gadiNo || data.vehicleNo || '') + '_' + now.replace(/[\/:]/g, '-'));
+  }
+
   if (sheetName === JCB_SHEET_NAME) {
-    row = [data.date, data.gadiNo, data.driverName, data.customerName || data.partyName || '', data.customerNumber || '', data.runMode || '', data.workDetail || '', data.startMtr || '', data.stopMtr || '', data.totalHour || data.tipCount || '0', data.startMtrDay || '', data.stopMtrDay || '', data.rate, data.totalAmount, data.receivedAmount || data.paidAmount || '0', data.dueAmount || '0', data.locationLink || '', entryBy, entryTime];
+    row = [data.date, data.gadiNo, data.driverName, data.customerName || data.partyName || '', data.customerNumber || '', data.runMode || '', data.workDetail || '', data.startMtr || '', data.stopMtr || '', data.totalHour || data.tipCount || '0', data.startMtrDay || '', data.stopMtrDay || '', data.rate, data.totalAmount, data.receivedAmount || data.paidAmount || '0', data.dueAmount || '0', photoUrl, data.locationLink || '', entryBy, entryTime];
   } else if (sheetName === TIPPER_SHEET_NAME) {
-    row = [data.date, data.gadiNo, data.driverName, data.customerName || '', data.customerNumber || '', data.material || '', data.loadingPlace || '', data.unloadingPlace || '', data.cftTrip || '', data.photo || '', data.locationLink || '', entryBy, entryTime];
+    row = [data.date, data.gadiNo, data.driverName, data.customerName || '', data.customerNumber || '', data.material || '', data.loadingPlace || '', data.unloadingPlace || '', data.cftTrip || '', photoUrl, data.locationLink || '', entryBy, entryTime];
   } else if (sheetName === DIESEL_SHEET_NAME) {
-    row = [data.date, data.gadiNo || data.vehicleNo || '', data.dieselLtr || '0', data.dieselCost || '0', data.petrolPumpName || '', data.dieselMtr || data.meterReading || '', data.dieselPaidBy || data.paidBy || '', data.remarks || '', data.locationLink || '', entryBy, entryTime];
+    row = [data.date, data.gadiNo || data.vehicleNo || '', data.dieselLtr || '0', data.dieselCost || '0', data.petrolPumpName || '', data.dieselMtr || data.meterReading || '', data.dieselPaidBy || data.paidBy || '', data.remarks || '', photoUrl, data.locationLink || '', entryBy, entryTime];
   } else if (sheetName === EXPENSE_SHEET_NAME) {
     row = [data.date, data.expenseMode, data.expensesDescription || data.description || '', data.amount, data.remark || '', new Date().toISOString(), entryBy, entryTime];
   } else if (sheetName === ATTENDANCE_SHEET_NAME) {
@@ -268,6 +274,7 @@ function updateEntry(data) {
   const headers = values[0];
   const timeIdx = headers.indexOf('Actual Entry Time');
   const userIdx = headers.indexOf('Entered By');
+  const photoIdx = headers.indexOf('Photo');
 
   for (let i = 1; i < values.length; i++) {
     if (values[i][timeIdx] === data.originalEntryTime) {
@@ -275,11 +282,19 @@ function updateEntry(data) {
           return JSON_RES({ success: false, error: 'Authorization failed' });
       }
 
+      // Handle photo upload
+      var photoUrl = (photoIdx !== -1 ? values[i][photoIdx] : '') || '';
+      if (data.photoBase64 && data.photoBase64.length > 0) {
+        photoUrl = uploadPhotoToDrive(data.photoBase64, data.sheetName + '_' + (data.gadiNo || '') + '_' + data.originalEntryTime.replace(/[\/:]/g, '-'));
+      }
+
       let row = [];
       if (data.sheetName === JCB_SHEET_NAME) {
-        row = [data.date, data.gadiNo, data.driverName, data.customerName || data.partyName || '', data.customerNumber || '', data.runMode || '', data.workDetail || '', data.startMtr || '', data.stopMtr || '', data.totalHour || data.tipCount || '0', data.startMtrDay || '', data.stopMtrDay || '', data.rate, data.totalAmount, data.receivedAmount || data.paidAmount || '0', data.dueAmount || '0', data.locationLink || '', data.userName, data.originalEntryTime];
+        row = [data.date, data.gadiNo, data.driverName, data.customerName || data.partyName || '', data.customerNumber || '', data.runMode || '', data.workDetail || '', data.startMtr || '', data.stopMtr || '', data.totalHour || data.tipCount || '0', data.startMtrDay || '', data.stopMtrDay || '', data.rate, data.totalAmount, data.receivedAmount || data.paidAmount || '0', data.dueAmount || '0', photoUrl, data.locationLink || '', data.userName, data.originalEntryTime];
       } else if (data.sheetName === TIPPER_SHEET_NAME) {
-        row = [data.date, data.gadiNo, data.driverName, data.customerName || '', data.customerNumber || '', data.material || '', data.loadingPlace || '', data.unloadingPlace || '', data.cftTrip || '', data.photo || '', data.locationLink || '', data.userName, data.originalEntryTime];
+        row = [data.date, data.gadiNo, data.driverName, data.customerName || '', data.customerNumber || '', data.material || '', data.loadingPlace || '', data.unloadingPlace || '', data.cftTrip || '', photoUrl, data.locationLink || '', data.userName, data.originalEntryTime];
+      } else if (data.sheetName === DIESEL_SHEET_NAME) {
+        row = [data.date, data.gadiNo || data.vehicleNo || '', data.dieselLtr || '0', data.dieselCost || '0', data.petrolPumpName || '', data.dieselMtr || data.meterReading || '', data.dieselPaidBy || data.paidBy || '', data.remarks || '', photoUrl, data.locationLink || '', data.userName, data.originalEntryTime];
       }
       sheet.getRange(i + 1, 1, 1, row.length).setValues([row]);
       return JSON_RES({ success: true });

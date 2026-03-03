@@ -357,9 +357,9 @@ export const JCBFormScreen = ({ navigation, route }) => {
 
                         <View style={{ marginTop: 10 }}>
                             <PhotoPicker
-                                photo={null} // JCB doesnt save photos yet but we have the picker
-                                onPhotoSelected={(uri) => { }}
-                                label="Work Site Photo (Optional)"
+                                photo={formData.photo}
+                                onPhotoSelected={(uri) => updateField('photo', uri)}
+                                label="Work Site Photo (Optional, max 5 MB)"
                             />
                         </View>
                     </View>

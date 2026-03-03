@@ -205,7 +205,7 @@ export const TipperFormScreen = ({ navigation, route }) => {
                             <PhotoPicker
                                 photo={formData.photo}
                                 onPhotoSelected={(uri) => updateField('photo', uri)}
-                                label="Load Photo (Optional)"
+                                label="Load Photo (Optional, max 5 MB)"
                             />
                         </View>
                     </View>

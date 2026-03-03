@@ -185,7 +185,7 @@ export const DieselEntryScreen = ({ navigation }) => {
                             <PhotoPicker
                                 photo={formData.photo}
                                 onPhotoSelected={(uri) => updateField('photo', uri)}
-                                label="Diesel Receipt Photo (Optional)"
+                                label="Diesel Receipt Photo (Optional, max 5 MB)"
                             />
                         </View>
                     </View>
