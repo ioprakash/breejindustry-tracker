@@ -10,8 +10,8 @@ const EMPLOYEES_SHEET_NAME = 'Employees_List';
 const LEDGER_PARTIES_SHEET_NAME = 'Ledger_Parties';
 const LEDGER_ENTRIES_SHEET_NAME = 'Ledger_Entries';
 
-const LATEST_VERSION = '1.8.1';
-const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.8.1.apk';
+const LATEST_VERSION = '1.8.2';
+const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.8.2.apk';
 
 // Role-based Passwords
 const ADMIN_PASSWORD = "667";
@@ -32,7 +32,7 @@ function checkAndFixHeaders(sheetName) {
     [ATTENDANCE_SHEET_NAME]: ['Date', 'Employee Name', 'Type', 'Time', 'Location Link', 'Status', 'Approved By', 'Actual Entry Time'],
     [EMPLOYEES_SHEET_NAME]: ['Name', 'Password'],
     [LEDGER_PARTIES_SHEET_NAME]: ['Party Name'],
-    [LEDGER_ENTRIES_SHEET_NAME]: ['Date', 'Party Name', 'Type', 'Amount', 'Description', 'Remark', 'Entered By', 'Actual Entry Time']
+    [LEDGER_ENTRIES_SHEET_NAME]: ['Date', 'Party Name', 'Type', 'Amount', 'Description', 'Remark', 'Photo', 'Entered By', 'Actual Entry Time']
   };
 
   const expected = headersMap[sheetName];
@@ -183,6 +183,10 @@ function doPost(e) {
       const sheet = checkAndFixHeaders(LEDGER_ENTRIES_SHEET_NAME);
       const now = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
       const entryBy = data.enteredBy || 'Unknown';
+      var photoUrl = data.photoLink || '';
+      if (data.photoBase64 && data.photoBase64.length > 0) {
+        photoUrl = uploadPhotoToDrive(data.photoBase64, 'Ledger_' + data.partyName + '_' + now.replace(/[\/:]/g, '-'));
+      }
       const row = [
         data.date,
         data.partyName,
@@ -190,6 +194,7 @@ function doPost(e) {
         data.amount || '0',
         data.description || '',
         data.remark || '',
+        photoUrl,
         entryBy,
         now
       ];
@@ -202,9 +207,16 @@ function doPost(e) {
       const values = sheet.getDataRange().getValues();
       const headers = values[0];
       const timeIdx = headers.indexOf('Actual Entry Time');
+      const photoIdx = headers.indexOf('Photo');
       
       for (let i = 1; i < values.length; i++) {
         if (values[i][timeIdx] === data.originalEntryTime) {
+          var photoUrl = (photoIdx !== -1 ? values[i][photoIdx] : '') || '';
+          if (data.photoBase64 && data.photoBase64.length > 0) {
+            photoUrl = uploadPhotoToDrive(data.photoBase64, 'Ledger_' + data.partyName + '_' + data.originalEntryTime.replace(/[\/:]/g, '-'));
+          } else if (data.photoLink !== undefined) {
+            photoUrl = data.photoLink || '';
+          }
           const row = [
             data.date,
             data.partyName,
@@ -212,6 +224,7 @@ function doPost(e) {
             data.amount || '0',
             data.description || '',
             data.remark || '',
+            photoUrl,
             data.userName || values[i][headers.indexOf('Entered By')],
             data.originalEntryTime
           ];
@@ -351,4 +364,27 @@ function getQuickStats(role, userName) {
 
 function toCamelCase(str) {
   return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (w, i) => i === 0 ? w.toLowerCase() : w.toUpperCase()).replace(/\s+/g, '').replace(/[()]/g, '');
+}
+
+function uploadPhotoToDrive(base64Data, fileName) {
+  try {
+    var base64Content = base64Data.replace(/^data:image\/\w+;base64,/, '');
+    var decoded = Utilities.base64Decode(base64Content);
+    var blob = Utilities.newBlob(decoded, 'image/jpeg', fileName + '.jpg');
+    
+    var folders = DriveApp.getFoldersByName('BrijIndustryPhotos');
+    var folder;
+    if (folders.hasNext()) {
+      folder = folders.next();
+    } else {
+      folder = DriveApp.createFolder('BrijIndustryPhotos');
+    }
+    
+    var file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return 'https://drive.google.com/file/d/' + file.getId() + '/view';
+  } catch (e) {
+    Logger.log('Photo upload error: ' + e.toString());
+    return '';
+  }
 }

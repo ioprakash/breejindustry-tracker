@@ -14,7 +14,9 @@ import {
     KeyboardAvoidingView,
     Platform,
     ActivityIndicator,
+    Linking,
 } from 'react-native';
+import { PhotoPicker } from '../components/PhotoPicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../styles/theme';
 import { formatNumber } from '../utils/calculations';
@@ -51,6 +53,8 @@ export const LedgerScreen = ({ navigation }) => {
         amount: '',
         description: '',
         remark: '',
+        photo: null,
+        photoLink: '',
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -169,6 +173,8 @@ export const LedgerScreen = ({ navigation }) => {
                     amount: '',
                     description: '',
                     remark: '',
+                    photo: null,
+                    photoLink: '',
                 });
                 setEditingEntry(null);
                 setEntryFormVisible(false);
@@ -193,6 +199,8 @@ export const LedgerScreen = ({ navigation }) => {
             amount: entry.amount ? entry.amount.toString() : '',
             description: entry.description || '',
             remark: entry.remark || '',
+            photo: null,
+            photoLink: entry.photo || '',
         });
         setEntryFormVisible(true);
     };
@@ -327,7 +335,7 @@ export const LedgerScreen = ({ navigation }) => {
                                 </Text>
                                 <View style={{ flex: 2 }}>
                                     <Text style={styles.entryCellText} numberOfLines={1}>
-                                        {entry.description || 'N/A'}
+                                        {entry.photo ? '📷 ' : ''}{entry.description || 'N/A'}
                                     </Text>
                                     {entry.remark ? (
                                         <Text style={styles.entryRemark} numberOfLines={1}>
@@ -368,6 +376,8 @@ export const LedgerScreen = ({ navigation }) => {
                             amount: '',
                             description: '',
                             remark: '',
+                            photo: null,
+                            photoLink: '',
                         });
                         setEntryFormVisible(true);
                     }}
@@ -576,6 +586,23 @@ export const LedgerScreen = ({ navigation }) => {
                                     value={entryForm.remark}
                                     onChangeText={(val) => setEntryForm({ ...entryForm, remark: val })}
                                 />
+
+                                {/* Photo */}
+                                <View style={{ marginTop: 12 }}>
+                                    {entryForm.photoLink ? (
+                                        <View style={styles.existingPhotoRow}>
+                                            <Text style={styles.inputLabel}>📷 Existing Photo</Text>
+                                            <TouchableOpacity onPress={() => Linking.openURL(entryForm.photoLink)}>
+                                                <Text style={styles.photoLinkText}>View Photo ↗</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    ) : null}
+                                    <PhotoPicker
+                                        photo={entryForm.photo}
+                                        onPhotoSelected={(uri) => setEntryForm({ ...entryForm, photo: uri })}
+                                        label={entryForm.photoLink ? 'Replace Photo (Optional)' : 'Attach Photo (Optional, max 5 MB)'}
+                                    />
+                                </View>
 
                                 <TouchableOpacity
                                     style={[styles.submitBtn, submitting && styles.submitBtnDisabled, { marginBottom: 30 }]}
@@ -936,5 +963,17 @@ const styles = StyleSheet.create({
         color: '#6366f1',
         fontSize: theme.fontSize.md,
         fontWeight: theme.fontWeight.bold,
+    },
+    existingPhotoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: theme.spacing.xs,
+    },
+    photoLinkText: {
+        color: '#6366f1',
+        fontSize: theme.fontSize.sm,
+        fontWeight: theme.fontWeight.bold,
+        textDecorationLine: 'underline',
     },
 });

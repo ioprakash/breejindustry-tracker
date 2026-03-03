@@ -15,6 +15,7 @@ import {
     saveData,
     getData,
 } from './storage';
+import * as FileSystem from 'expo-file-system';
 
 const API_URL = 'https://script.google.com/macros/s/AKfycbxubMOm8TjBOzgOzhazJ2-heLKddQpVI9-kK6Tea1zZlRQlIeI1h0Z8VDXUZarh5sOe-Q/exec';
 
@@ -389,6 +390,19 @@ export const getLedgerEntries = async (partyName) => {
 export const addLedgerEntry = async (data) => {
     try {
         const finalData = await attachUserInfo(data);
+        // Handle photo upload - convert to base64
+        if (finalData.photo && finalData.photo.startsWith('file')) {
+            const fileInfo = await FileSystem.getInfoAsync(finalData.photo);
+            if (fileInfo.exists && fileInfo.size <= 5 * 1024 * 1024) {
+                const base64 = await FileSystem.readAsStringAsync(finalData.photo, {
+                    encoding: FileSystem.EncodingType.Base64,
+                });
+                finalData.photoBase64 = 'data:image/jpeg;base64,' + base64;
+            } else if (fileInfo.exists) {
+                return { success: false, error: 'Photo size must be less than 5 MB' };
+            }
+            delete finalData.photo;
+        }
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -406,6 +420,19 @@ export const updateLedgerEntry = async (originalEntryTime, updatedData) => {
     try {
         const userName = await getData('@user_name');
         const userRole = await getData('@user_role');
+        // Handle photo upload - convert to base64
+        if (updatedData.photo && updatedData.photo.startsWith('file')) {
+            const fileInfo = await FileSystem.getInfoAsync(updatedData.photo);
+            if (fileInfo.exists && fileInfo.size <= 5 * 1024 * 1024) {
+                const base64 = await FileSystem.readAsStringAsync(updatedData.photo, {
+                    encoding: FileSystem.EncodingType.Base64,
+                });
+                updatedData.photoBase64 = 'data:image/jpeg;base64,' + base64;
+            } else if (fileInfo.exists) {
+                return { success: false, error: 'Photo size must be less than 5 MB' };
+            }
+            delete updatedData.photo;
+        }
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

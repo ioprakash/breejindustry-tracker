@@ -11,24 +11,33 @@ Before building, you must increment the version in 3 places:
 - **`apps-script/Code.gs`**: Update `const LATEST_VERSION = 'x.x.x'` and update the `DOWNLOAD_URL` to point to the new APK filename.
 
 ### 2. Prepare the Native Project
-Run prebuild to sync `app.json` changes to the native android folder:
+Run prebuild to sync `app.json` changes to the native android folder. 
+**CRITICAL:** Prebuild will delete `android/local.properties`. You must restore it before building.
+
 // turbo
 `npx expo prebuild --platform android --clean`
 
-### 3. Generate Local Release APK
+// turbo
+`echo "sdk.dir=C:\\Users\\dipuk\\AppData\\Local\\Android\\Sdk" > android/local.properties`
+
+### 3. Verify Dynamic Versioning
+Ensure `src/services/updateHandler.js` uses `Constants.expoConfig.version` instead of a hardcoded string. This prevents the "Update Available" loop after a successful update.
+
+### 4. Generate Local Release APK
 Navigate to the android folder and run the Gradle build:
 // turbo
 `cd android; ./gradlew assembleRelease; cd ..`
 
-### 4. Move and Rename APK
+### 5. Move and Rename APK
 Copy the generated APK to the root directory with the versioned name:
 // turbo
 `copy-item -Path "android\app\build\outputs\apk\release\app-release.apk" -Destination "d:\code\brij-industry-tracker\brij-industry-tracker-vX.X.X.apk" -Force`
 
-### 5. Push to GitHub
+### 6. Push to GitHub
 Commit all code changes and the new APK file, then push to the main branch:
 // turbo
 `git add . ; git commit -m "vX.X.X: [Description of changes]"; git push origin main`
 
-### 6. Update Google Apps Script
+### 7. Update Google Apps Script
 Copy the contents of `apps-script/Code.gs` to the Google Sheet Script Editor and **Deploy as a New Version** to make the update live for all users.
+
