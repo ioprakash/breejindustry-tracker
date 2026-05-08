@@ -10,8 +10,8 @@ const EMPLOYEES_SHEET_NAME = 'Employees_List';
 const LEDGER_PARTIES_SHEET_NAME = 'Ledger_Parties';
 const LEDGER_ENTRIES_SHEET_NAME = 'Ledger_Entries';
 
-const LATEST_VERSION = '1.8.3';
-const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.8.3.apk';
+const LATEST_VERSION = '1.8.4';
+const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.8.4.apk';
 
 // Role-based Passwords
 const ADMIN_PASSWORD = "667";
@@ -25,11 +25,11 @@ function checkAndFixHeaders(sheetName) {
   let sheet = ss.getSheetByName(sheetName);
   
   const headersMap = {
-    [JCB_SHEET_NAME]: ['Date', 'Gadi No', 'Driver Name', 'Customer/Party Name', 'Phone', 'Run Mode', 'Work Detail', 'Start Mtr', 'Stop Mtr', 'Total Hour/Count', 'Day Start Mtr', 'Day Stop Mtr', 'Rate', 'Total Amount', 'Received Amount', 'Due Amount', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
+    [JCB_SHEET_NAME]: ['Date', 'Gadi No', 'Driver Name', 'Customer/Party Name', 'Phone', 'Run Mode', 'Work Detail', 'Start Mtr', 'Stop Mtr', 'Total Hour/Count', 'Total Work Run', 'Day Start Mtr', 'Day Stop Mtr', 'Total Day Run', 'Rate', 'Total Amount', 'Received Amount', 'Payment Received By', 'Due Amount', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
     [TIPPER_SHEET_NAME]: ['Date', 'Gadi No', 'Driver Name', 'Customer Name', 'Customer Phone', 'Material', 'Loading Place', 'Unloading Place', 'CFT/Trip', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
-    [DIESEL_SHEET_NAME]: ['Date', 'Vehicle No', 'Diesel (Ltr)', 'Cost', 'Petrol Pump Name', 'Meter Reading', 'Paid By', 'Remarks', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
+    [DIESEL_SHEET_NAME]: ['Date', 'Vehicle No', 'Vehicle Type', 'Diesel (Ltr)', 'Cost', 'Petrol Pump Name', 'Meter Reading', 'Paid By', 'Remarks', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
     [EXPENSE_SHEET_NAME]: ['Date', 'Expense Mode', 'Expenses Description', 'Amount', 'Remark', 'Time', 'Entered By', 'Actual Entry Time'],
-    [ATTENDANCE_SHEET_NAME]: ['Date', 'Employee Name', 'Type', 'Time', 'Location Link', 'Status', 'Approved By', 'Actual Entry Time'],
+    [ATTENDANCE_SHEET_NAME]: ['Date', 'Employee Name', 'Work Description', 'Type', 'Time', 'Location Link', 'Status', 'Approved By', 'Actual Entry Time'],
     [EMPLOYEES_SHEET_NAME]: ['Name', 'Password'],
     [LEDGER_PARTIES_SHEET_NAME]: ['Party Name'],
     [LEDGER_ENTRIES_SHEET_NAME]: ['Date', 'Party Name', 'Type', 'Amount', 'Description', 'Remark', 'Photo', 'Entered By', 'Actual Entry Time']
@@ -256,9 +256,12 @@ function addEntry(sheetName, data) {
       'Run Mode': data.runMode || '', 'Work Detail': data.workDetail || '',
       'Start Mtr': data.startMtr || '', 'Stop Mtr': data.stopMtr || '',
       'Total Hour/Count': data.totalHour || data.tipCount || '0',
+      'Total Work Run': data.totalWorkRun || '0',
       'Day Start Mtr': data.startMtrDay || '', 'Day Stop Mtr': data.stopMtrDay || '',
+      'Total Day Run': data.totalDayRun || '0',
       'Rate': data.rate, 'Total Amount': data.totalAmount,
       'Received Amount': data.receivedAmount || data.paidAmount || '0',
+      'Payment Received By': data.paymentReceivedBy || '',
       'Due Amount': data.dueAmount || '0', 'Photo': photoUrl,
       'Location Link': data.locationLink || '', 'Entered By': entryBy, 'Actual Entry Time': entryTime
     };
@@ -274,6 +277,7 @@ function addEntry(sheetName, data) {
   } else if (sheetName === DIESEL_SHEET_NAME) {
     valueMap = {
       'Date': data.date, 'Vehicle No': data.gadiNo || data.vehicleNo || '',
+      'Vehicle Type': data.vehicleType || '',
       'Diesel (Ltr)': data.dieselLtr || '0', 'Cost': data.dieselCost || '0',
       'Petrol Pump Name': data.petrolPumpName || '',
       'Meter Reading': data.dieselMtr || data.meterReading || '',
@@ -290,7 +294,9 @@ function addEntry(sheetName, data) {
     };
   } else if (sheetName === ATTENDANCE_SHEET_NAME) {
     valueMap = {
-      'Date': data.date, 'Employee Name': data.employeeName, 'Type': data.type,
+      'Date': data.date, 'Employee Name': data.employeeName,
+      'Work Description': data.workDescription || '',
+      'Type': data.type,
       'Time': data.time, 'Location Link': data.locationLink || '',
       'Status': 'Pending', 'Approved By': '', 'Actual Entry Time': entryTime
     };
@@ -331,9 +337,12 @@ function updateEntry(data) {
           'Run Mode': data.runMode || '', 'Work Detail': data.workDetail || '',
           'Start Mtr': data.startMtr || '', 'Stop Mtr': data.stopMtr || '',
           'Total Hour/Count': data.totalHour || data.tipCount || '0',
+          'Total Work Run': data.totalWorkRun || '0',
           'Day Start Mtr': data.startMtrDay || '', 'Day Stop Mtr': data.stopMtrDay || '',
+          'Total Day Run': data.totalDayRun || '0',
           'Rate': data.rate, 'Total Amount': data.totalAmount,
           'Received Amount': data.receivedAmount || data.paidAmount || '0',
+          'Payment Received By': data.paymentReceivedBy || '',
           'Due Amount': data.dueAmount || '0', 'Photo': photoUrl,
           'Location Link': data.locationLink || '', 'Entered By': data.userName,
           'Actual Entry Time': data.originalEntryTime
@@ -350,6 +359,7 @@ function updateEntry(data) {
       } else if (data.sheetName === DIESEL_SHEET_NAME) {
         valueMap = {
           'Date': data.date, 'Vehicle No': data.gadiNo || data.vehicleNo || '',
+          'Vehicle Type': data.vehicleType || '',
           'Diesel (Ltr)': data.dieselLtr || '0', 'Cost': data.dieselCost || '0',
           'Petrol Pump Name': data.petrolPumpName || '',
           'Meter Reading': data.dieselMtr || data.meterReading || '',
