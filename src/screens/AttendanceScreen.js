@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { LocationPicker } from '../components/LocationPicker';
+import { CustomInput } from '../components/CustomInput';
 import { CustomButton } from '../components/CustomButton';
 import { theme } from '../styles/theme';
 import { submitAttendance, getAttendanceEntries } from '../services/api';
@@ -24,7 +25,8 @@ export const AttendanceScreen = ({ navigation }) => {
         date: getTodayDate(),
         time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
         locationLink: '',
-        address: ''
+        address: '',
+        workDescription: ''
     });
 
     const loadHistory = async () => {
@@ -127,6 +129,16 @@ export const AttendanceScreen = ({ navigation }) => {
                             onLocationSelected={(url, address) => {
                                 setFormData(prev => ({ ...prev, locationLink: url, address: address }));
                             }}
+                        />
+                    </View>
+
+                    <View style={{ marginBottom: 20 }}>
+                        <CustomInput
+                            label="Work Description"
+                            value={formData.workDescription}
+                            onChangeText={(val) => setFormData(prev => ({ ...prev, workDescription: val }))}
+                            placeholder="What are you working on today?"
+                            multiline
                         />
                     </View>
 

@@ -43,6 +43,7 @@ export const JCBFormScreen = ({ navigation, route }) => {
         totalAmount: initialData.totalAmount?.toString() || '',
         locationLink: initialData.locationLink || '',
         remarks: initialData.remarks || '',
+        paymentReceivedBy: initialData.paymentReceivedBy || '',
     } : {
         date: getTodayDate(),
         gadiNo: '',
@@ -54,11 +55,14 @@ export const JCBFormScreen = ({ navigation, route }) => {
         startMtr: '',
         stopMtr: '',
         totalHour: '',
+        totalWorkRun: '0',
         startMtrDay: '',
         stopMtrDay: '',
+        totalDayRun: '0',
         rate: '',
         totalAmount: '',
         receivedAmount: '',
+        paymentReceivedBy: '',
         remarks: '',
         locationLink: '',
         photo: null,
@@ -72,6 +76,7 @@ export const JCBFormScreen = ({ navigation, route }) => {
             if (field === 'startMtr' || field === 'stopMtr' || field === 'rate') {
                 const hours = (parseFloat(newData.stopMtr) || 0) - (parseFloat(newData.startMtr) || 0);
                 const total = hours * (parseFloat(newData.rate) || 0);
+                newData.totalWorkRun = Math.max(0, hours).toFixed(2);
                 newData.totalAmount = Math.max(0, total).toString();
                 newData.dueAmount = calculateDueAmount(newData.totalAmount, newData.receivedAmount).toString();
             }
@@ -81,6 +86,12 @@ export const JCBFormScreen = ({ navigation, route }) => {
                 newData.totalAmount = total.toString();
                 newData.dueAmount = calculateDueAmount(total, newData.receivedAmount).toString();
             }
+        }
+
+        // Auto-calculate day run
+        if (field === 'startMtrDay' || field === 'stopMtrDay') {
+            const dayRun = (parseFloat(newData.stopMtrDay) || 0) - (parseFloat(newData.startMtrDay) || 0);
+            newData.totalDayRun = Math.max(0, dayRun).toFixed(2);
         }
 
         // Auto-calculate due amount
@@ -218,6 +229,13 @@ export const JCBFormScreen = ({ navigation, route }) => {
                                 />
                             </View>
                         </View>
+
+                        <CustomInput
+                            label="Total Day Run (Calculated)"
+                            value={formData.totalDayRun}
+                            editable={false}
+                            placeholder="0"
+                        />
                     </View>
 
                     {/* Customer Info Section */}
@@ -269,28 +287,36 @@ export const JCBFormScreen = ({ navigation, route }) => {
                         )}
 
                         {formData.runMode === 'Hour' && (
-                            <View style={styles.row}>
-                                <View style={styles.halfWidth}>
-                                    <CustomInput
-                                        label="Start Mtr"
-                                        value={formData.startMtr}
-                                        onChangeText={(val) => updateField('startMtr', val)}
-                                        placeholder="0"
-                                        keyboardType="numeric"
-                                        required
-                                    />
+                            <>
+                                <View style={styles.row}>
+                                    <View style={styles.halfWidth}>
+                                        <CustomInput
+                                            label="Start Mtr"
+                                            value={formData.startMtr}
+                                            onChangeText={(val) => updateField('startMtr', val)}
+                                            placeholder="0"
+                                            keyboardType="numeric"
+                                            required
+                                        />
+                                    </View>
+                                    <View style={styles.halfWidth}>
+                                        <CustomInput
+                                            label="Stop Mtr"
+                                            value={formData.stopMtr}
+                                            onChangeText={(val) => updateField('stopMtr', val)}
+                                            placeholder="0"
+                                            keyboardType="numeric"
+                                            required
+                                        />
+                                    </View>
                                 </View>
-                                <View style={styles.halfWidth}>
-                                    <CustomInput
-                                        label="Stop Mtr"
-                                        value={formData.stopMtr}
-                                        onChangeText={(val) => updateField('stopMtr', val)}
-                                        placeholder="0"
-                                        keyboardType="numeric"
-                                        required
-                                    />
-                                </View>
-                            </View>
+                                <CustomInput
+                                    label="Total Work Run (Calculated)"
+                                    value={formData.totalWorkRun}
+                                    editable={false}
+                                    placeholder="0"
+                                />
+                            </>
                         )}
 
                         <View style={styles.row}>
@@ -335,6 +361,13 @@ export const JCBFormScreen = ({ navigation, route }) => {
                             onChangeText={(val) => updateField('receivedAmount', val)}
                             placeholder="0"
                             keyboardType="numeric"
+                        />
+
+                        <CustomInput
+                            label="Payment Received By"
+                            value={formData.paymentReceivedBy}
+                            onChangeText={(val) => updateField('paymentReceivedBy', val)}
+                            placeholder="Enter name"
                         />
 
                         <CustomInput

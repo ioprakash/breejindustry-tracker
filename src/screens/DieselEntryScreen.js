@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { CustomInput } from '../components/CustomInput';
 import { CustomButton } from '../components/CustomButton';
+import { CustomDropdown } from '../components/CustomDropdown';
 import { PhotoPicker } from '../components/PhotoPicker';
 import { LocationPicker } from '../components/LocationPicker';
 import { theme } from '../styles/theme';
@@ -25,9 +26,17 @@ const SectionHeader = ({ icon, title }) => (
     </View>
 );
 
+const VEHICLE_OPTIONS = [
+    { label: 'JCB', value: 'JCB' },
+    { label: 'Tipper', value: 'Tipper' },
+    { label: 'Tractor', value: 'Tractor' },
+    { label: 'Other', value: 'Other' },
+];
+
 export const DieselEntryScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
+        vehicleType: 'JCB',
         gadiNo: '',
         date: getTodayDate(),
         dieselLtr: '',
@@ -98,6 +107,15 @@ export const DieselEntryScreen = ({ navigation }) => {
                     {/* Vehicle Info */}
                     <SectionHeader icon="🚗" title="Vehicle Information" />
                     <View style={styles.sectionCard}>
+                        <CustomDropdown
+                            label="Vehicle Type"
+                            options={VEHICLE_OPTIONS}
+                            selectedValue={formData.vehicleType}
+                            onValueChange={(val) => updateField('vehicleType', val)}
+                            placeholder="Select vehicle"
+                            required
+                        />
+
                         <CustomInput
                             label="Vehicle / Gadi No"
                             value={formData.gadiNo}
