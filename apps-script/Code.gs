@@ -11,7 +11,7 @@ const LEDGER_PARTIES_SHEET_NAME = 'Ledger_Parties';
 const LEDGER_ENTRIES_SHEET_NAME = 'Ledger_Entries';
 
 const LATEST_VERSION = '1.8.4';
-const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/refs/heads/main/brij-industry-tracker-v1.8.4.apk';
+const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/main/brij-industry-tracker-v1.8.4.apk';
 
 // Role-based Passwords
 const ADMIN_PASSWORD = "667";
