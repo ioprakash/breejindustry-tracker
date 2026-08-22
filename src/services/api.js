@@ -238,6 +238,32 @@ export const updateEntry = async (sheetName, originalTimestamp, updatedData) => 
     }
 };
 
+// UNIVERSAL DELETE (Admin / Authorized User)
+export const deleteEntry = async (sheetName, originalTimestamp) => {
+    try {
+        const userName = await getData('@user_name');
+        const userRole = await getData('@user_role');
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'deleteEntry',
+                data: {
+                    sheetName,
+                    originalEntryTime: originalTimestamp,
+                    userName,
+                    userRole,
+                }
+            }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Delete failed:', error);
+        return { success: false, error: 'Connection failure' };
+    }
+};
+
 // Get Entries with Filters
 const fetchWithAuth = async (action) => {
     try {

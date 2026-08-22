@@ -59,7 +59,7 @@ export const LocationPicker = ({ onLocationSelected, existingLocation }) => {
         if (!location) return;
         try {
             await Share.share({
-                message: `My Current Location: ${location}`,
+                message: `Current Job Location: ${location}`,
                 url: location,
                 title: 'Share Location'
             });
@@ -77,7 +77,7 @@ export const LocationPicker = ({ onLocationSelected, existingLocation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.label}>📍 Live Location</Text>
+                <Text style={styles.label}>📍 Live GPS Location</Text>
                 {location && (
                     <TouchableOpacity onPress={handleShare}>
                         <Text style={styles.shareText}>📤 Share Link</Text>
@@ -88,27 +88,38 @@ export const LocationPicker = ({ onLocationSelected, existingLocation }) => {
             {location ? (
                 <View style={styles.resultContainer}>
                     <TouchableOpacity onPress={openInMaps} style={styles.linkContainer}>
-                        <Text style={styles.linkText} numberOfLines={1}>{location}</Text>
-                        <Text style={styles.hint}>(Tap to preview in Maps)</Text>
+                        <Text style={styles.linkText} numberOfLines={1}>📍 {location}</Text>
+                        <Text style={styles.hint}>Tap to preview location in Google Maps ↗</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.reGetBtn}
                         onPress={getLocation}
                         disabled={loading}
                     >
-                        <Text style={styles.reGetText}>🔄 Refresh</Text>
+                        {loading ? (
+                            <ActivityIndicator size="small" color={theme.colors.primary} />
+                        ) : (
+                            <Text style={styles.reGetText}>🔄 Refresh</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             ) : (
                 <TouchableOpacity
-                    style={styles.getBtn}
+                    style={styles.button}
                     onPress={getLocation}
                     disabled={loading}
+                    activeOpacity={0.8}
                 >
                     {loading ? (
-                        <ActivityIndicator color="#fff" size="small" />
+                        <View style={styles.loadingRow}>
+                            <ActivityIndicator color={theme.colors.primary} size="small" />
+                            <Text style={styles.loadingText}>Acquiring High-Precision GPS...</Text>
+                        </View>
                     ) : (
-                        <Text style={styles.getBtnText}>Get Current Location</Text>
+                        <View style={styles.btnRow}>
+                            <Text style={styles.btnIcon}>📍</Text>
+                            <Text style={styles.buttonText}>Fetch Current GPS Location</Text>
+                        </View>
                     )}
                 </TouchableOpacity>
             )}
@@ -128,45 +139,63 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: theme.fontSize.sm,
-        fontWeight: theme.fontWeight.bold,
+        fontWeight: theme.fontWeight.semibold,
         color: theme.colors.textSecondary,
     },
     shareText: {
-        fontSize: theme.fontSize.xs,
+        fontSize: 12,
         color: theme.colors.primary,
         fontWeight: 'bold',
     },
-    getBtn: {
-        backgroundColor: theme.colors.primary,
-        height: 48,
+    button: {
+        backgroundColor: theme.colors.primarySoft,
+        borderWidth: 1.5,
+        borderColor: 'rgba(29, 78, 216, 0.25)',
+        paddingVertical: 14,
         borderRadius: theme.borderRadius.md,
-        justifyContent: 'center',
         alignItems: 'center',
-        flexDirection: 'row',
-        ...theme.shadows.sm,
+        justifyContent: 'center',
     },
-    getBtnText: {
-        color: '#fff',
-        fontWeight: 'bold',
+    btnRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    btnIcon: {
+        fontSize: 16,
+        marginRight: 8,
+    },
+    buttonText: {
+        color: theme.colors.primary,
+        fontWeight: theme.fontWeight.bold,
         fontSize: theme.fontSize.sm,
+    },
+    loadingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    loadingText: {
+        color: theme.colors.primary,
+        fontSize: theme.fontSize.xs,
+        fontWeight: theme.fontWeight.medium,
     },
     resultContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+        backgroundColor: theme.colors.cardLight,
+        borderRadius: theme.borderRadius.md,
+        padding: theme.spacing.sm + 2,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        gap: 8,
     },
     linkContainer: {
         flex: 1,
-        backgroundColor: theme.colors.background,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        borderRadius: theme.borderRadius.md,
-        padding: 10,
     },
     linkText: {
-        fontSize: 12,
+        fontSize: theme.fontSize.xs,
         color: theme.colors.primary,
-        textDecorationLine: 'underline',
+        fontWeight: theme.fontWeight.bold,
     },
     hint: {
         fontSize: 10,
@@ -174,13 +203,16 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     reGetBtn: {
-        padding: 10,
-        backgroundColor: theme.colors.borderLight,
-        borderRadius: theme.borderRadius.md,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        backgroundColor: theme.colors.card,
+        borderRadius: theme.borderRadius.sm,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
     },
     reGetText: {
-        fontSize: 12,
-        fontWeight: 'bold',
+        fontSize: 11,
         color: theme.colors.textSecondary,
+        fontWeight: theme.fontWeight.bold,
     },
 });

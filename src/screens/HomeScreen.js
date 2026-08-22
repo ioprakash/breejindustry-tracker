@@ -9,6 +9,7 @@ import {
     RefreshControl,
     Image,
     Dimensions,
+    Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Constants from 'expo-constants';
@@ -17,7 +18,6 @@ import { StatCard } from '../components/StatCard';
 import { getQuickStats, processSyncQueue } from '../services/api';
 import { formatNumber } from '../utils/calculations';
 import { getData, saveData } from '../services/storage';
-import { Alert } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -55,12 +55,12 @@ export const HomeScreen = ({ navigation }) => {
 
     const handleLogout = async () => {
         Alert.alert(
-            'Logout',
-            'Are you sure you want to logout?',
+            'Confirm Logout',
+            'Are you sure you want to log out from Brij Industry Tracker?',
             [
                 { text: 'Cancel', style: 'cancel' },
                 {
-                    text: 'Logout',
+                    text: 'Log Out',
                     style: 'destructive',
                     onPress: async () => {
                         isMounted.current = false;
@@ -70,8 +70,8 @@ export const HomeScreen = ({ navigation }) => {
                             index: 0,
                             routes: [{ name: 'Login' }],
                         });
-                    }
-                }
+                    },
+                },
             ]
         );
     };
@@ -86,7 +86,7 @@ export const HomeScreen = ({ navigation }) => {
                     tipperCount: data.tipperCount || 0,
                     todayJcb: data.todayJcb || 0,
                     todayTipper: data.todayTipper || 0,
-                    totalDue: data.totalDue || 0
+                    totalDue: data.totalDue || 0,
                 });
             }
         } catch (error) {
@@ -113,7 +113,7 @@ export const HomeScreen = ({ navigation }) => {
         <TouchableOpacity
             style={[styles.menuCard, isHalf && styles.menuCardHalf]}
             onPress={onPress}
-            activeOpacity={0.85}
+            activeOpacity={0.88}
         >
             <LinearGradient
                 colors={colors}
@@ -122,7 +122,9 @@ export const HomeScreen = ({ navigation }) => {
                 style={styles.menuGradient}
             >
                 <View style={styles.menuDecorCircle} />
-                <Text style={styles.menuIcon}>{icon}</Text>
+                <View style={styles.iconBadge}>
+                    <Text style={styles.menuIcon}>{icon}</Text>
+                </View>
                 <Text style={styles.menuTitle}>{title}</Text>
                 <Text style={styles.menuSubtitle}>{subtitle}</Text>
                 <View style={styles.menuArrow}>
@@ -139,7 +141,7 @@ export const HomeScreen = ({ navigation }) => {
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Gradient Header */}
+                {/* Executive Gradient Header */}
                 <LinearGradient
                     colors={theme.gradients.header}
                     start={{ x: 0, y: 0 }}
@@ -149,166 +151,199 @@ export const HomeScreen = ({ navigation }) => {
                     <View style={styles.headerDecor1} />
                     <View style={styles.headerDecor2} />
 
-                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                        <Text style={styles.logoutText}>🚪 Logout</Text>
-                    </TouchableOpacity>
+                    <View style={styles.topNavRow}>
+                        <View style={styles.roleBadge}>
+                            <Text style={styles.roleBadgeText}>
+                                {isAdmin ? '👑 ADMIN ACCESS' : '👷 STAFF MEMBER'}
+                            </Text>
+                        </View>
+
+                        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
+                            <Text style={styles.logoutText}>🚪 Logout</Text>
+                        </TouchableOpacity>
+                    </View>
 
                     <Image
                         source={require('../../assets/brij-logo.png')}
                         style={styles.logo}
                         resizeMode="contain"
                     />
-                    <Text style={styles.tagline}>Vehicle Tracking System</Text>
+                    <Text style={styles.tagline}>Heavy Equipment & Vehicle Fleet Operations</Text>
                 </LinearGradient>
 
-                {/* Welcome Card */}
+                {/* Welcome Card with Glass Glow */}
                 <View style={styles.welcomeCard}>
                     <View style={styles.welcomeLeft}>
-                        <Text style={styles.welcomeGreeting}>{getGreeting()}, {userName}</Text>
-                        <Text style={styles.welcomeText}>Track your JCB and Tipper operations efficiently</Text>
+                        <Text style={styles.welcomeGreeting}>{getGreeting()}</Text>
+                        <Text style={styles.userNameText}>{userName || 'Team Member'}</Text>
+                        <Text style={styles.welcomeText}>Manage daily trips, machine hours & fuel logs</Text>
                     </View>
                     <View style={styles.welcomeIconContainer}>
-                        <Text style={styles.welcomeEmoji}>📋</Text>
+                        <Text style={styles.welcomeEmoji}>{isAdmin ? '💼' : '🚜'}</Text>
                     </View>
                 </View>
 
-                {/* Menu Cards - 2 Column Grid */}
-                <Text style={styles.sectionTitle}>Quick Actions</Text>
+                {/* Operations & Forms Section */}
+                <View style={styles.sectionHeaderRow}>
+                    <View style={styles.sectionIndicator} />
+                    <Text style={styles.sectionTitle}>Operations & Logging</Text>
+                </View>
+
                 <View style={styles.menuGrid}>
                     <MenuCard
                         title="Attendance"
-                        subtitle="In / Out"
+                        subtitle="Clock In / Out"
                         icon="🕒"
-                        colors={['#10b981', '#059669']}
+                        colors={['#10b981', '#047857']}
                         onPress={() => navigation.navigate('Attendance')}
                         isHalf
                     />
                     <MenuCard
                         title="JCB Entry"
-                        subtitle="Log work"
+                        subtitle="Hours & Tips"
                         icon="🚜"
-                        colors={theme.gradients.primary}
+                        colors={['#1d4ed8', '#1e40af']}
                         onPress={() => navigation.navigate('JCBForm')}
                         isHalf
                     />
                     <MenuCard
-                        title="Tipper"
-                        subtitle="Record trips"
+                        title="Tipper Entry"
+                        subtitle="Trip & Material"
                         icon="🚚"
-                        colors={theme.gradients.secondary}
+                        colors={['#f97316', '#c2410c']}
                         onPress={() => navigation.navigate('TipperForm')}
                         isHalf
                     />
                     <MenuCard
-                        title="Diesel"
-                        subtitle="Log fuel"
+                        title="Diesel Log"
+                        subtitle="Fuel & Pump"
                         icon="⛽"
-                        colors={theme.gradients.warning}
+                        colors={['#f59e0b', '#d97706']}
                         onPress={() => navigation.navigate('DieselEntry')}
                         isHalf
                     />
-                    {isAdmin && (
-                        <>
+                </View>
+
+                {/* Admin Management Section */}
+                {isAdmin && (
+                    <>
+                        <View style={styles.sectionHeaderRow}>
+                            <View style={[styles.sectionIndicator, { backgroundColor: '#8b5cf6' }]} />
+                            <Text style={styles.sectionTitle}>Business Management</Text>
+                        </View>
+                        <View style={styles.menuGrid}>
                             <MenuCard
                                 title="Dashboard"
-                                subtitle="View entries"
+                                subtitle="All Entries & Live Search"
                                 icon="📊"
-                                colors={theme.gradients.accent}
+                                colors={['#0284c7', '#0369a1']}
                                 onPress={() => navigation.navigate('Dashboard')}
                                 isHalf
                             />
                             <MenuCard
                                 title="Expenses"
-                                subtitle="Daily costs"
+                                subtitle="Log Daily Costs"
                                 icon="💎"
-                                colors={['#8b5cf6', '#7c3aed']}
+                                colors={['#8b5cf6', '#6d28d9']}
                                 onPress={() => navigation.navigate('ExpenseForm')}
                                 isHalf
                             />
                             <MenuCard
-                                title="Approve"
-                                subtitle="Attendance"
+                                title="Approve Att."
+                                subtitle="Staff Attendance Review"
                                 icon="✅"
-                                colors={['#0ea5e9', '#0284c7']}
+                                colors={['#059669', '#065f46']}
                                 onPress={() => navigation.navigate('AdminAttendance')}
                                 isHalf
                             />
                             <MenuCard
-                                title="Employees"
-                                subtitle="Manage users"
-                                icon="👥"
-                                colors={['#f43f5e', '#e11d48']}
-                                onPress={() => navigation.navigate('ManageEmployees')}
-                                isHalf
-                            />
-                            <MenuCard
-                                title="Ledger"
-                                subtitle="Party accounts"
+                                title="Party Ledger"
+                                subtitle="Credit & Debit Statements"
                                 icon="📒"
-                                colors={['#6366f1', '#4f46e5']}
+                                colors={['#6366f1', '#4338ca']}
                                 onPress={() => navigation.navigate('Ledger')}
                                 isHalf
                             />
-                        </>
-                    )}
+                            <MenuCard
+                                title="Employees"
+                                subtitle="Manage System Passwords"
+                                icon="👥"
+                                colors={['#e11d48', '#be123c']}
+                                onPress={() => navigation.navigate('ManageEmployees')}
+                                isHalf
+                            />
+                        </View>
+                    </>
+                )}
+
+                {/* Quick Performance Stats */}
+                <View style={styles.sectionHeaderRow}>
+                    <View style={[styles.sectionIndicator, { backgroundColor: theme.colors.primary }]} />
+                    <Text style={styles.sectionTitle}>{isAdmin ? 'Live System Overview' : 'Your Activity Summary'}</Text>
                 </View>
 
-                {/* Quick Stats */}
-                <Text style={styles.sectionTitle}>{isAdmin ? 'System Overview' : 'Your Activity Summary'}</Text>
                 <View style={styles.statsGrid}>
                     <StatCard
                         icon="🚜"
                         value={isAdmin ? stats.jcbCount : stats.todayJcb}
-                        label={isAdmin ? "Total JCB Entries" : "Today's JCB Entries"}
-                        colors={theme.gradients.primary}
-                        subtitle={!isAdmin ? `Total: ${stats.jcbCount}` : null}
+                        label={isAdmin ? "Total JCB Logged" : "Today's JCB Jobs"}
+                        colors={['#1d4ed8', '#1e3a8a']}
+                        subtitle={!isAdmin ? `Lifetime: ${stats.jcbCount} entries` : null}
                     />
                     <StatCard
                         icon="🚚"
                         value={isAdmin ? stats.tipperCount : stats.todayTipper}
-                        label={isAdmin ? "Total Tipper Trips" : "Today's Trips"}
-                        colors={theme.gradients.secondary}
-                        subtitle={!isAdmin ? `Total: ${stats.tipperCount}` : null}
+                        label={isAdmin ? "Total Tipper Trips" : "Today's Tipper Trips"}
+                        colors={['#f97316', '#9a3412']}
+                        subtitle={!isAdmin ? `Lifetime: ${stats.tipperCount} trips` : null}
                     />
                     {isAdmin && (
                         <StatCard
                             icon="💰"
                             value={`₹${formatNumber(stats.totalDue || 0)}`}
-                            label="Total Due"
-                            colors={['#ef4444', '#dc2626']}
+                            label="Total Outstanding Due"
+                            colors={['#ef4444', '#991b1b']}
                         />
                     )}
                 </View>
 
-                {/* Edit Last Entry (For Employees) */}
+                {/* Quick Re-edit Last Entry (For Employees) */}
                 {!isAdmin && (lastEntries.jcb || lastEntries.tipper) && (
-                    <View style={{ marginTop: 20, marginHorizontal: 20 }}>
-                        <Text style={styles.sectionTitle}>Re-edit Last Entry</Text>
-                        <View style={styles.menuGrid}>
+                    <View style={styles.reEditSection}>
+                        <View style={styles.sectionHeaderRow}>
+                            <View style={[styles.sectionIndicator, { backgroundColor: theme.colors.warning }]} />
+                            <Text style={styles.sectionTitle}>Re-edit Recent Submission</Text>
+                        </View>
+                        <View style={styles.reEditRow}>
                             {lastEntries.jcb && (
                                 <TouchableOpacity
-                                    style={styles.editButton}
+                                    style={styles.reEditBtn}
                                     onPress={() => navigation.navigate('JCBForm', { initialData: lastEntries.jcb, isEdit: true })}
+                                    activeOpacity={0.8}
                                 >
-                                    <Text style={styles.editText}>✏️ Edit Last JCB</Text>
+                                    <Text style={styles.reEditText}>🚜 Edit Last JCB ({lastEntries.jcb.gadiNo})</Text>
                                 </TouchableOpacity>
                             )}
                             {lastEntries.tipper && (
                                 <TouchableOpacity
-                                    style={styles.editButton}
+                                    style={styles.reEditBtn}
                                     onPress={() => navigation.navigate('TipperForm', { initialData: lastEntries.tipper, isEdit: true })}
+                                    activeOpacity={0.8}
                                 >
-                                    <Text style={styles.editText}>✏️ Edit Last Tipper</Text>
+                                    <Text style={styles.reEditText}>🚚 Edit Last Tipper ({lastEntries.tipper.gadiNo})</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
                     </View>
                 )}
 
-                {/* Version Footer */}
-                <Text style={styles.versionText}>
-                    Brij Industry Tracker v{Constants.expoConfig?.version || '1.7.7'}
-                </Text>
+                {/* Footer Brand Tag */}
+                <View style={styles.footerContainer}>
+                    <Text style={styles.versionText}>
+                        Brij Industry Tracker Enterprise • v{Constants.expoConfig?.version || '1.8.4'}
+                    </Text>
+                    <Text style={styles.footerSubText}>Cloud Sync • Google Sheets Database Protected</Text>
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -320,11 +355,11 @@ const styles = StyleSheet.create({
         backgroundColor: theme.colors.background,
     },
     scrollContent: {
-        paddingBottom: theme.spacing.xxl + 20,
+        paddingBottom: theme.spacing.xxl + 30,
     },
     headerGradient: {
-        paddingTop: theme.spacing.xxl,
-        paddingBottom: theme.spacing.xxl + 10,
+        paddingTop: theme.spacing.xl,
+        paddingBottom: theme.spacing.xxl + 14,
         alignItems: 'center',
         overflow: 'hidden',
         position: 'relative',
@@ -335,29 +370,49 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: -40,
         right: -30,
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: 'rgba(255,255,255,0.06)',
+        width: 140,
+        height: 140,
+        borderRadius: 70,
+        backgroundColor: 'rgba(255,255,255,0.07)',
     },
     headerDecor2: {
         position: 'absolute',
         bottom: -20,
         left: -20,
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(255,255,255,0.04)',
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+    },
+    topNavRow: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: theme.spacing.lg,
+        marginBottom: theme.spacing.sm,
+    },
+    roleBadge: {
+        backgroundColor: 'rgba(255, 255, 255, 0.18)',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: theme.borderRadius.full,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.25)',
+    },
+    roleBadgeText: {
+        color: '#fff',
+        fontSize: 10,
+        fontWeight: theme.fontWeight.extrabold,
+        letterSpacing: 0.5,
     },
     logoutButton: {
-        position: 'absolute',
-        top: 40,
-        right: 20,
-        backgroundColor: 'rgba(255,255,255,0.15)',
-        paddingHorizontal: 12,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        paddingHorizontal: 14,
         paddingVertical: 6,
         borderRadius: theme.borderRadius.full,
-        zIndex: 10,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
     },
     logoutText: {
         color: '#fff',
@@ -366,58 +421,80 @@ const styles = StyleSheet.create({
     },
     logo: {
         width: 240,
-        height: 120,
-        marginBottom: theme.spacing.sm,
+        height: 110,
+        marginBottom: 2,
     },
     tagline: {
-        fontSize: theme.fontSize.md,
-        color: 'rgba(255, 255, 255, 0.85)',
+        fontSize: theme.fontSize.sm,
+        color: 'rgba(255, 255, 255, 0.9)',
         fontWeight: theme.fontWeight.medium,
-        letterSpacing: 0.5,
+        letterSpacing: 0.3,
     },
     welcomeCard: {
         marginHorizontal: theme.spacing.lg,
-        marginTop: -20,
+        marginTop: -26,
         padding: theme.spacing.lg,
-        borderRadius: theme.borderRadius.lg,
+        borderRadius: theme.borderRadius.xl,
         backgroundColor: theme.colors.card,
         flexDirection: 'row',
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: theme.colors.borderLight,
         ...theme.shadows.lg,
     },
     welcomeLeft: {
         flex: 1,
     },
     welcomeGreeting: {
-        fontSize: theme.fontSize.xl,
+        fontSize: theme.fontSize.xs,
         fontWeight: theme.fontWeight.bold,
+        color: theme.colors.primary,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        marginBottom: 2,
+    },
+    userNameText: {
+        fontSize: theme.fontSize.xl,
+        fontWeight: theme.fontWeight.extrabold,
         color: theme.colors.text,
         marginBottom: 4,
     },
     welcomeText: {
-        fontSize: theme.fontSize.sm,
+        fontSize: theme.fontSize.xs,
         color: theme.colors.textSecondary,
-        lineHeight: 20,
+        lineHeight: 18,
     },
     welcomeIconContainer: {
-        width: 52,
-        height: 52,
-        borderRadius: 26,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
         backgroundColor: theme.colors.primarySoft,
         alignItems: 'center',
         justifyContent: 'center',
         marginLeft: theme.spacing.md,
     },
     welcomeEmoji: {
-        fontSize: 26,
+        fontSize: 28,
     },
-    sectionTitle: {
-        fontSize: theme.fontSize.lg,
-        fontWeight: theme.fontWeight.bold,
-        color: theme.colors.text,
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
         marginHorizontal: theme.spacing.lg,
         marginTop: theme.spacing.xl,
         marginBottom: theme.spacing.md,
+    },
+    sectionIndicator: {
+        width: 4,
+        height: 18,
+        borderRadius: 2,
+        backgroundColor: theme.colors.primary,
+        marginRight: 8,
+    },
+    sectionTitle: {
+        fontSize: theme.fontSize.md,
+        fontWeight: theme.fontWeight.bold,
+        color: theme.colors.text,
+        letterSpacing: 0.2,
     },
     menuGrid: {
         flexDirection: 'row',
@@ -435,7 +512,7 @@ const styles = StyleSheet.create({
     },
     menuGradient: {
         padding: theme.spacing.lg,
-        minHeight: 130,
+        minHeight: 135,
         justifyContent: 'flex-end',
         position: 'relative',
         overflow: 'hidden',
@@ -444,64 +521,92 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: -15,
         top: -15,
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
     },
-    menuIcon: {
-        fontSize: 36,
+    iconBadge: {
+        width: 42,
+        height: 42,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255, 255, 255, 0.22)',
+        alignItems: 'center',
+        justifyContent: 'center',
         marginBottom: theme.spacing.sm,
     },
+    menuIcon: {
+        fontSize: 22,
+    },
     menuTitle: {
-        fontSize: theme.fontSize.lg,
-        fontWeight: theme.fontWeight.bold,
+        fontSize: theme.fontSize.md,
+        fontWeight: theme.fontWeight.extrabold,
         color: '#fff',
         marginBottom: 2,
     },
     menuSubtitle: {
-        fontSize: theme.fontSize.xs,
-        color: 'rgba(255, 255, 255, 0.8)',
-        letterSpacing: 0.3,
+        fontSize: 11,
+        color: 'rgba(255, 255, 255, 0.85)',
+        letterSpacing: 0.2,
     },
     menuArrow: {
         position: 'absolute',
-        right: 14,
-        bottom: 14,
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        right: 12,
+        bottom: 12,
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        backgroundColor: 'rgba(255, 255, 255, 0.25)',
         alignItems: 'center',
         justifyContent: 'center',
     },
     menuArrowText: {
         color: '#fff',
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: theme.fontWeight.bold,
     },
     statsGrid: {
         paddingHorizontal: theme.spacing.lg,
         gap: theme.spacing.md,
     },
-    editButton: {
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        padding: 12,
-        borderRadius: theme.borderRadius.md,
-        flex: 1,
-        alignItems: 'center',
+    reEditSection: {
+        marginTop: 6,
     },
-    editText: {
-        fontWeight: 'bold',
+    reEditRow: {
+        paddingHorizontal: theme.spacing.lg,
+        gap: theme.spacing.sm,
+    },
+    reEditBtn: {
+        backgroundColor: theme.colors.card,
+        borderWidth: 1.5,
+        borderColor: theme.colors.border,
+        paddingVertical: 12,
+        paddingHorizontal: theme.spacing.md,
+        borderRadius: theme.borderRadius.md,
+        alignItems: 'center',
+        ...theme.shadows.sm,
+    },
+    reEditText: {
+        fontWeight: theme.fontWeight.bold,
         color: theme.colors.textSecondary,
+        fontSize: theme.fontSize.sm,
+    },
+    footerContainer: {
+        alignItems: 'center',
+        marginTop: theme.spacing.xxl,
+        paddingHorizontal: theme.spacing.lg,
     },
     versionText: {
         textAlign: 'center',
-        color: theme.colors.textMuted,
+        color: theme.colors.textSecondary,
         fontSize: theme.fontSize.xs,
-        marginTop: theme.spacing.xl,
+        fontWeight: theme.fontWeight.semibold,
         letterSpacing: 0.3,
+    },
+    footerSubText: {
+        textAlign: 'center',
+        color: theme.colors.textMuted,
+        fontSize: 10,
+        marginTop: 2,
     },
 });

@@ -13,11 +13,19 @@ import {
 import { CustomInput } from '../components/CustomInput';
 import { CustomButton } from '../components/CustomButton';
 import { theme } from '../styles/theme';
-import { submitExpenseEntry } from '../services/api';
+import { submitExpenseEntry, updateEntry } from '../services/api';
 
-export const ExpenseFormScreen = ({ navigation }) => {
+export const ExpenseFormScreen = ({ navigation, route }) => {
+    const { initialData, isEdit } = route.params || {};
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState(initialData ? {
+        ...initialData,
+        date: initialData.date || new Date().toISOString().split('T')[0],
+        expenseMode: initialData.expenseMode || 'Cash',
+        description: initialData.description || initialData.expensesDescription || '',
+        amount: (initialData.amount || '').toString(),
+        remark: initialData.remark || initialData.remarks || '',
+    } : {
         date: new Date().toISOString().split('T')[0],
         expenseMode: 'Cash',
         description: '',
@@ -39,6 +47,16 @@ export const ExpenseFormScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
+            if (isEdit) {
+                const result = await updateEntry('Daily_Expenses', initialData.actualEntryTime, formData);
+                if (result.success) {
+                    Alert.alert('Success', 'Expense updated successfully!', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+                } else {
+                    Alert.alert('Error', result.error || 'Failed to update expense');
+                }
+                return;
+            }
+
             const result = await submitExpenseEntry(formData);
             if (result.success) {
                 Alert.alert(
@@ -142,7 +160,7 @@ export const ExpenseFormScreen = ({ navigation }) => {
                         />
 
                         <CustomButton
-                            title="Save Daily Expense"
+                            title={loading ? 'Processing...' : (isEdit ? 'Update Expense' : 'Save Daily Expense')}
                             onPress={handleSubmit}
                             loading={loading}
                             icon="💎"

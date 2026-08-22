@@ -348,33 +348,59 @@ export const JCBFormScreen = ({ navigation, route }) => {
                     {/* Payment Section */}
                     <SectionHeader icon="💰" title="Payment Details" />
                     <View style={styles.sectionCard}>
+                        {/* Live Financial Summary Pill Card */}
+                        <View style={styles.calcSummaryBox}>
+                            <View style={styles.calcCol}>
+                                <Text style={styles.calcLabel}>Total</Text>
+                                <Text style={styles.calcVal}>₹{formData.totalAmount || '0'}</Text>
+                            </View>
+                            <View style={styles.calcDivider} />
+                            <View style={styles.calcCol}>
+                                <Text style={styles.calcLabel}>Received</Text>
+                                <Text style={[styles.calcVal, { color: theme.colors.success }]}>
+                                    ₹{formData.receivedAmount || '0'}
+                                </Text>
+                            </View>
+                            <View style={styles.calcDivider} />
+                            <View style={styles.calcCol}>
+                                <Text style={styles.calcLabel}>Due</Text>
+                                <Text style={[styles.calcVal, { color: (parseFloat(formData.dueAmount) || 0) > 0 ? theme.colors.danger : theme.colors.textMuted }]}>
+                                    ₹{formData.dueAmount || '0'}
+                                </Text>
+                            </View>
+                        </View>
+
                         <CustomInput
                             label="Total Amount"
                             value={formData.totalAmount}
                             editable={false}
                             keyboardType="numeric"
+                            icon="💰"
                         />
 
                         <CustomInput
                             label="Received Amount"
                             value={formData.receivedAmount}
                             onChangeText={(val) => updateField('receivedAmount', val)}
-                            placeholder="0"
+                            placeholder="0.00"
                             keyboardType="numeric"
+                            icon="💵"
                         />
 
                         <CustomInput
                             label="Payment Received By"
                             value={formData.paymentReceivedBy}
                             onChangeText={(val) => updateField('paymentReceivedBy', val)}
-                            placeholder="Enter name"
+                            placeholder="Enter name of person who received"
+                            icon="👤"
                         />
 
                         <CustomInput
-                            label="Due Amount"
+                            label="Due Balance (Auto-Calculated)"
                             value={formData.dueAmount}
                             editable={false}
                             keyboardType="numeric"
+                            icon="⚠️"
                         />
                     </View>
 
@@ -503,5 +529,36 @@ const styles = StyleSheet.create({
     },
     buttonHalf: {
         flex: 1,
+    },
+    calcSummaryBox: {
+        flexDirection: 'row',
+        backgroundColor: theme.colors.cardLight,
+        borderRadius: theme.borderRadius.md,
+        padding: theme.spacing.md,
+        marginBottom: theme.spacing.lg,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        alignItems: 'center',
+    },
+    calcCol: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    calcLabel: {
+        fontSize: 11,
+        color: theme.colors.textMuted,
+        fontWeight: theme.fontWeight.semibold,
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    calcVal: {
+        fontSize: theme.fontSize.md,
+        fontWeight: theme.fontWeight.bold,
+        color: theme.colors.text,
+    },
+    calcDivider: {
+        width: 1,
+        height: 24,
+        backgroundColor: theme.colors.border,
     },
 });

@@ -15,7 +15,7 @@ import { CustomDropdown } from '../components/CustomDropdown';
 import { PhotoPicker } from '../components/PhotoPicker';
 import { LocationPicker } from '../components/LocationPicker';
 import { theme } from '../styles/theme';
-import { submitDieselEntry } from '../services/api';
+import { submitDieselEntry, updateEntry } from '../services/api';
 import { getTodayDate } from '../utils/calculations';
 
 const SectionHeader = ({ icon, title }) => (
@@ -33,9 +33,23 @@ const VEHICLE_OPTIONS = [
     { label: 'Other', value: 'Other' },
 ];
 
-export const DieselEntryScreen = ({ navigation }) => {
+export const DieselEntryScreen = ({ navigation, route }) => {
+    const { initialData, isEdit } = route.params || {};
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState(initialData ? {
+        ...initialData,
+        vehicleType: initialData.vehicleType || 'JCB',
+        gadiNo: (initialData.gadiNo || initialData.vehicleNo || '').toString(),
+        date: initialData.date || getTodayDate(),
+        dieselLtr: (initialData.dieselLtr || initialData['diesel(ltr)'] || '').toString(),
+        dieselCost: (initialData.dieselCost || initialData.cost || '').toString(),
+        dieselMtr: (initialData.dieselMtr || initialData.meterReading || '').toString(),
+        petrolPumpName: initialData.petrolPumpName || '',
+        dieselPaidBy: initialData.dieselPaidBy || initialData.paidBy || '',
+        remarks: initialData.remarks || '',
+        photo: null,
+        locationLink: initialData.locationLink || '',
+    } : {
         vehicleType: 'JCB',
         gadiNo: '',
         date: getTodayDate(),
@@ -56,7 +70,7 @@ export const DieselEntryScreen = ({ navigation }) => {
     const validateForm = () => {
         const required = ['gadiNo', 'date', 'dieselLtr', 'dieselCost'];
         for (const field of required) {
-            if (!formData[field].trim()) {
+            if (!formData[field] || !formData[field].toString().trim()) {
                 Alert.alert('Validation Error', `Please fill ${field.replace('diesel', 'Diesel ')} field`);
                 return false;
             }
@@ -69,6 +83,16 @@ export const DieselEntryScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
+            if (isEdit) {
+                const result = await updateEntry('Diesel_Logs', initialData.actualEntryTime, formData);
+                if (result.success) {
+                    Alert.alert('Success', 'Diesel entry updated successfully', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+                } else {
+                    Alert.alert('Error', result.error || 'Failed to update diesel entry');
+                }
+                return;
+            }
+
             const result = await submitDieselEntry(formData);
 
             if (result.queued) {
@@ -100,8 +124,8 @@ export const DieselEntryScreen = ({ navigation }) => {
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     {/* Header */}
                     <View style={styles.header}>
-                        <Text style={styles.title}>⛽ Diesel Entry Form</Text>
-                        <Text style={styles.subtitle}>Log diesel usage for vehicles</Text>
+                        <Text style={styles.title}>{isEdit ? '✏️ Edit Diesel Entry' : '⛽ Diesel Entry Form'}</Text>
+                        <Text style={styles.subtitle}>{isEdit ? 'Update fuel log details' : 'Log diesel usage for vehicles'}</Text>
                     </View>
 
                     {/* Vehicle Info */}
@@ -230,7 +254,7 @@ export const DieselEntryScreen = ({ navigation }) => {
                             style={styles.buttonHalf}
                         />
                         <CustomButton
-                            title={loading ? 'Submitting...' : 'Submit Entry'}
+                            title={loading ? 'Processing...' : (isEdit ? 'Update Entry' : 'Submit Entry')}
                             icon="✓"
                             onPress={handleSubmit}
                             loading={loading}

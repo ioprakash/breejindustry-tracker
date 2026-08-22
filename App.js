@@ -51,7 +51,7 @@ export default function App() {
     <>
       <StatusBar
         barStyle="light-content"
-        backgroundColor="#0f172a"
+        backgroundColor="#0b1e38"
         translucent={false}
       />
       <NavigationContainer>
@@ -59,12 +59,14 @@ export default function App() {
           initialRouteName="Login"
           screenOptions={{
             headerStyle: {
-              backgroundColor: theme.colors.card,
+              backgroundColor: '#0b1e38',
             },
-            headerTintColor: theme.colors.text,
+            headerTintColor: '#ffffff',
             headerTitleStyle: {
-              fontWeight: 'bold',
+              fontWeight: '700',
+              fontSize: 18,
             },
+            headerShadowVisible: false,
             contentStyle: {
               backgroundColor: theme.colors.background,
             },

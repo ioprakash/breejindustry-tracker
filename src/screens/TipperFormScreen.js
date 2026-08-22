@@ -32,6 +32,7 @@ export const TipperFormScreen = ({ navigation, route }) => {
         ...initialData,
         cftTrip: initialData.cftTrip?.toString() || '',
         locationLink: initialData.locationLink || '',
+        remarks: initialData.remarks || '',
     } : {
         date: getTodayDate(),
         gadiNo: '',
@@ -189,6 +190,15 @@ export const TipperFormScreen = ({ navigation, route }) => {
                             onChangeText={(val) => updateField('cftTrip', val)}
                             placeholder="0"
                             keyboardType="numeric"
+                        />
+
+                        <CustomInput
+                            label="Remarks"
+                            value={formData.remarks}
+                            onChangeText={(val) => updateField('remarks', val)}
+                            placeholder="Enter any additional notes or remarks"
+                            multiline
+                            numberOfLines={3}
                         />
                     </View>
 

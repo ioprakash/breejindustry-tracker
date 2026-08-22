@@ -10,8 +10,8 @@ const EMPLOYEES_SHEET_NAME = 'Employees_List';
 const LEDGER_PARTIES_SHEET_NAME = 'Ledger_Parties';
 const LEDGER_ENTRIES_SHEET_NAME = 'Ledger_Entries';
 
-const LATEST_VERSION = '1.8.4';
-const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/main/brij-industry-tracker-v1.8.4.apk';
+const LATEST_VERSION = '1.8.5';
+const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/main/brij-industry-tracker-v1.8.5.apk';
 
 // Role-based Passwords
 const ADMIN_PASSWORD = "667";
@@ -26,7 +26,7 @@ function checkAndFixHeaders(sheetName) {
   
   const headersMap = {
     [JCB_SHEET_NAME]: ['Date', 'Gadi No', 'Driver Name', 'Customer/Party Name', 'Phone', 'Run Mode', 'Work Detail', 'Start Mtr', 'Stop Mtr', 'Total Hour/Count', 'Total Work Run', 'Day Start Mtr', 'Day Stop Mtr', 'Total Day Run', 'Rate', 'Total Amount', 'Received Amount', 'Payment Received By', 'Due Amount', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
-    [TIPPER_SHEET_NAME]: ['Date', 'Gadi No', 'Driver Name', 'Customer Name', 'Customer Phone', 'Material', 'Loading Place', 'Unloading Place', 'CFT/Trip', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
+    [TIPPER_SHEET_NAME]: ['Date', 'Gadi No', 'Driver Name', 'Customer Name', 'Customer Phone', 'Material', 'Loading Place', 'Unloading Place', 'CFT/Trip', 'Remarks', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
     [DIESEL_SHEET_NAME]: ['Date', 'Vehicle No', 'Vehicle Type', 'Diesel (Ltr)', 'Cost', 'Petrol Pump Name', 'Meter Reading', 'Paid By', 'Remarks', 'Photo', 'Location Link', 'Entered By', 'Actual Entry Time'],
     [EXPENSE_SHEET_NAME]: ['Date', 'Expense Mode', 'Expenses Description', 'Amount', 'Remark', 'Time', 'Entered By', 'Actual Entry Time'],
     [ATTENDANCE_SHEET_NAME]: ['Date', 'Employee Name', 'Work Description', 'Type', 'Time', 'Location Link', 'Status', 'Approved By', 'Actual Entry Time'],
@@ -145,6 +145,7 @@ function doPost(e) {
     if (action === 'addExpense') return addEntry(EXPENSE_SHEET_NAME, data);
     if (action === 'addAttendance') return addEntry(ATTENDANCE_SHEET_NAME, data);
     if (action === 'updateEntry') return updateEntry(data);
+    if (action === 'deleteEntry') return deleteEntry(data);
     
     if (action === 'addEmployee') {
       const sheet = checkAndFixHeaders(EMPLOYEES_SHEET_NAME);
@@ -271,6 +272,7 @@ function addEntry(sheetName, data) {
       'Customer Name': data.customerName || '', 'Customer Phone': data.customerNumber || '',
       'Material': data.material || '', 'Loading Place': data.loadingPlace || '',
       'Unloading Place': data.unloadingPlace || '', 'CFT/Trip': data.cftTrip || '',
+      'Remarks': data.remarks || '',
       'Photo': photoUrl, 'Location Link': data.locationLink || '',
       'Entered By': entryBy, 'Actual Entry Time': entryTime
     };
@@ -353,6 +355,7 @@ function updateEntry(data) {
           'Customer Name': data.customerName || '', 'Customer Phone': data.customerNumber || '',
           'Material': data.material || '', 'Loading Place': data.loadingPlace || '',
           'Unloading Place': data.unloadingPlace || '', 'CFT/Trip': data.cftTrip || '',
+          'Remarks': data.remarks || '',
           'Photo': photoUrl, 'Location Link': data.locationLink || '',
           'Entered By': data.userName, 'Actual Entry Time': data.originalEntryTime
         };
@@ -367,11 +370,38 @@ function updateEntry(data) {
           'Photo': photoUrl, 'Location Link': data.locationLink || '',
           'Entered By': data.userName, 'Actual Entry Time': data.originalEntryTime
         };
+      } else if (data.sheetName === EXPENSE_SHEET_NAME) {
+        valueMap = {
+          'Date': data.date, 'Expense Mode': data.expenseMode || 'Cash',
+          'Expenses Description': data.expensesDescription || data.description || '',
+          'Amount': data.amount || '0', 'Remark': data.remark || data.remarks || '',
+          'Time': data.time || new Date().toISOString(),
+          'Entered By': data.userName, 'Actual Entry Time': data.originalEntryTime
+        };
       }
 
       // Build row based on actual header order
       var row = headers.map(function(h) { return valueMap[h] !== undefined ? valueMap[h] : ''; });
       sheet.getRange(i + 1, 1, 1, row.length).setValues([row]);
+      return JSON_RES({ success: true });
+    }
+  }
+  return JSON_RES({ success: false, error: 'Record not found' });
+}
+
+function deleteEntry(data) {
+  const sheet = checkAndFixHeaders(data.sheetName);
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0];
+  const timeIdx = headers.indexOf('Actual Entry Time');
+  const userIdx = headers.indexOf('Entered By');
+
+  for (let i = 1; i < values.length; i++) {
+    if (values[i][timeIdx] === data.originalEntryTime) {
+      if (data.userRole === 'staff' && values[i][userIdx] !== data.userName) {
+        return JSON_RES({ success: false, error: 'Authorization failed' });
+      }
+      sheet.deleteRow(i + 1);
       return JSON_RES({ success: true });
     }
   }
