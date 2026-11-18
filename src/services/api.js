@@ -469,6 +469,53 @@ export const getLedgerEntries = async (partyName) => {
     }
 };
 
+// Get summary (Total DR, Total CR, Balance) for all parties
+export const getAllLedgerSummary = async (knownParties = []) => {
+    try {
+        const userName = await getData('@user_name');
+        const role = await getData('@user_role');
+        const url = `${API_URL}?action=getAllLedgerSummary&userName=${encodeURIComponent(userName)}&role=${role}`;
+        const response = await fetch(url);
+        const result = await response.json();
+        if (result.success && Array.isArray(result.data)) {
+            return result.data;
+        }
+    } catch (error) {
+        console.log('getAllLedgerSummary endpoint unavailable, falling back to per-party fetch:', error);
+    }
+
+    // Fallback: compute summary from individual party entries if Apps Script isn't redeployed yet
+    try {
+        const partyList = knownParties.length > 0 ? knownParties : await getLedgerParties();
+        if (!partyList || partyList.length === 0) return [];
+
+        const summaries = await Promise.all(
+            partyList.map(async (partyName) => {
+                const partyEntries = await getLedgerEntries(partyName);
+                const totalDR = partyEntries.reduce(
+                    (sum, e) => sum + (e.type === 'DR' ? (parseFloat(e.amount) || 0) : 0),
+                    0
+                );
+                const totalCR = partyEntries.reduce(
+                    (sum, e) => sum + (e.type === 'CR' ? (parseFloat(e.amount) || 0) : 0),
+                    0
+                );
+                return {
+                    partyName,
+                    totalDR,
+                    totalCR,
+                    balance: totalDR - totalCR,
+                    entryCount: partyEntries.length,
+                };
+            })
+        );
+        return summaries;
+    } catch (fallbackError) {
+        console.error('Error computing all party summary:', fallbackError);
+        return [];
+    }
+};
+
 // Add a ledger entry
 export const addLedgerEntry = async (data) => {
     try {

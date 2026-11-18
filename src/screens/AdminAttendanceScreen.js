@@ -91,6 +91,10 @@ export const AdminAttendanceScreen = () => {
                                     </View>
                                 </View>
 
+                                {item.workDescription ? (
+                                    <Text style={styles.workDescText}>📝 {item.workDescription}</Text>
+                                ) : null}
+
                                 {item.locationLink && (
                                     <TouchableOpacity
                                         style={styles.locationLink}
@@ -192,6 +196,11 @@ const styles = StyleSheet.create({
     dateTime: {
         fontSize: 12,
         color: theme.colors.textSecondary,
+    },
+    workDescText: {
+        fontSize: 13,
+        color: theme.colors.text,
+        marginBottom: theme.spacing.sm,
     },
     typeBadge: {
         paddingHorizontal: 12,

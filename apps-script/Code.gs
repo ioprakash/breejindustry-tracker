@@ -10,8 +10,8 @@ const EMPLOYEES_SHEET_NAME = 'Employees_List';
 const LEDGER_PARTIES_SHEET_NAME = 'Ledger_Parties';
 const LEDGER_ENTRIES_SHEET_NAME = 'Ledger_Entries';
 
-const LATEST_VERSION = '1.8.5';
-const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/main/brij-industry-tracker-v1.8.5.apk';
+const LATEST_VERSION = '1.8.6';
+const DOWNLOAD_URL = 'https://raw.githubusercontent.com/ioprakash/breejindustry-tracker/main/brij-industry-tracker-v1.8.6.apk';
 
 // Role-based Passwords
 const ADMIN_PASSWORD = "667";
@@ -120,13 +120,56 @@ function doGet(e) {
       const headers = data[0];
       const partyIdx = headers.indexOf('Party Name');
       let entries = data.slice(1)
-        .filter(row => row[partyIdx] === partyName)
+        .filter(row => !partyName || row[partyIdx] === partyName)
         .map(row => {
           let obj = {};
           headers.forEach((h, i) => obj[toCamelCase(h)] = row[i]);
           return obj;
         });
       return JSON_RES({ success: true, data: entries });
+    }
+
+    if (action === 'getAllLedgerSummary') {
+      const partiesSheet = checkAndFixHeaders(LEDGER_PARTIES_SHEET_NAME);
+      const partiesData = partiesSheet.getDataRange().getValues();
+      const partyNames = partiesData.slice(1).map(r => r[0]).filter(n => n);
+
+      const summaryMap = {};
+      partyNames.forEach(name => {
+        summaryMap[name] = { partyName: name, totalDR: 0, totalCR: 0, balance: 0, entryCount: 0 };
+      });
+
+      const entriesSheet = checkAndFixHeaders(LEDGER_ENTRIES_SHEET_NAME);
+      const entriesData = entriesSheet.getDataRange().getValues();
+      if (entriesData.length > 1) {
+        const headers = entriesData[0];
+        const partyIdx = headers.indexOf('Party Name');
+        const typeIdx = headers.indexOf('Type');
+        const amountIdx = headers.indexOf('Amount');
+
+        entriesData.slice(1).forEach(row => {
+          const pName = row[partyIdx];
+          if (!pName) return;
+          if (!summaryMap[pName]) {
+            summaryMap[pName] = { partyName: pName, totalDR: 0, totalCR: 0, balance: 0, entryCount: 0 };
+          }
+          const amt = parseFloat(row[amountIdx]) || 0;
+          if (row[typeIdx] === 'DR') {
+            summaryMap[pName].totalDR += amt;
+          } else if (row[typeIdx] === 'CR') {
+            summaryMap[pName].totalCR += amt;
+          }
+          summaryMap[pName].entryCount += 1;
+        });
+      }
+
+      const summaryList = Object.keys(summaryMap).map(key => {
+        const item = summaryMap[key];
+        item.balance = item.totalDR - item.totalCR;
+        return item;
+      });
+
+      return JSON_RES({ success: true, data: summaryList });
     }
 
     return JSON_RES({ success: false, error: 'Invalid action' });

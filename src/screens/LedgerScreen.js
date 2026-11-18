@@ -24,6 +24,7 @@ import {
     getLedgerParties,
     addLedgerParty,
     getLedgerEntries,
+    getAllLedgerSummary,
     addLedgerEntry,
     updateLedgerEntry,
 } from '../services/api';
@@ -35,6 +36,9 @@ export const LedgerScreen = ({ navigation }) => {
     const [entries, setEntries] = useState([]);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [showAllSummary, setShowAllSummary] = useState(false);
+    const [allPartySummary, setAllPartySummary] = useState([]);
+    const [loadingSummary, setLoadingSummary] = useState(false);
 
     // Modals
     const [addPartyModalVisible, setAddPartyModalVisible] = useState(false);
@@ -86,6 +90,27 @@ export const LedgerScreen = ({ navigation }) => {
         }
     }, []);
 
+    // ─── Load All Party Summary ──────────────────────────────
+    const loadAllPartySummary = useCallback(async (partyList = parties) => {
+        setLoadingSummary(true);
+        try {
+            const result = await getAllLedgerSummary(partyList);
+            if (Array.isArray(result)) {
+                setAllPartySummary(result);
+            }
+        } catch (err) {
+            console.error('Error loading all party summary:', err);
+        } finally {
+            setLoadingSummary(false);
+        }
+    }, [parties]);
+
+    const handleShowAllSummary = () => {
+        setSelectedParty(null);
+        setShowAllSummary(true);
+        loadAllPartySummary(parties);
+    };
+
     useEffect(() => {
         loadParties();
     }, [loadParties]);
@@ -101,6 +126,8 @@ export const LedgerScreen = ({ navigation }) => {
         await loadParties();
         if (selectedParty) {
             await loadEntries(selectedParty);
+        } else if (showAllSummary) {
+            await loadAllPartySummary(parties);
         }
         setRefreshing(false);
     };
@@ -123,6 +150,7 @@ export const LedgerScreen = ({ navigation }) => {
                 setParties(prev => [...prev, trimmed]);
                 setNewPartyName('');
                 setAddPartyModalVisible(false);
+                setShowAllSummary(false);
                 setSelectedParty(trimmed);
                 Alert.alert('Success', `Party "${trimmed}" added successfully`);
             } else {
@@ -224,6 +252,10 @@ export const LedgerScreen = ({ navigation }) => {
     const finalBalance = totalDR - totalCR;
     const entriesWithBalance = getEntriesWithBalance();
 
+    const allSummaryTotalDR = allPartySummary.reduce((sum, p) => sum + (parseFloat(p.totalDR) || 0), 0);
+    const allSummaryTotalCR = allPartySummary.reduce((sum, p) => sum + (parseFloat(p.totalCR) || 0), 0);
+    const allSummaryBalance = allSummaryTotalDR - allSummaryTotalCR;
+
     // ═══════════════════════════════════════════════════════════
     // RENDER
     // ═══════════════════════════════════════════════════════════
@@ -254,52 +286,130 @@ export const LedgerScreen = ({ navigation }) => {
                     style={[styles.actionBtn, styles.selectPartyBtn]}
                     onPress={() => setSelectPartyModalVisible(true)}
                 >
-                    <Text style={styles.actionBtnText}>
+                    <Text style={styles.actionBtnText} numberOfLines={1}>
                         {selectedParty ? `📋 ${selectedParty}` : '📋 Select Party'}
                     </Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                    style={[
+                        styles.actionBtn,
+                        styles.allSummaryBtn,
+                        showAllSummary && !selectedParty && styles.allSummaryBtnActive,
+                    ]}
+                    onPress={handleShowAllSummary}
+                >
+                    <Text style={styles.actionBtnText} numberOfLines={1}>📊 All Summary</Text>
+                </TouchableOpacity>
             </View>
 
-            {/* Party Summary Card */}
-            {selectedParty && (
+            {/* Party Summary Card (Single Party OR All Party Grand Total) */}
+            {(selectedParty || showAllSummary) && (
                 <View style={styles.summaryCard}>
                     <View style={styles.summaryRow}>
                         <View style={styles.summaryItem}>
                             <Text style={styles.summaryLabel}>Total DR</Text>
                             <Text style={[styles.summaryValue, { color: theme.colors.danger }]}>
-                                ₹{formatNumber(totalDR)}
+                                ₹{formatNumber(selectedParty ? totalDR : allSummaryTotalDR)}
                             </Text>
                         </View>
                         <View style={styles.summaryDivider} />
                         <View style={styles.summaryItem}>
                             <Text style={styles.summaryLabel}>Total CR</Text>
                             <Text style={[styles.summaryValue, { color: theme.colors.success }]}>
-                                ₹{formatNumber(totalCR)}
+                                ₹{formatNumber(selectedParty ? totalCR : allSummaryTotalCR)}
                             </Text>
                         </View>
                         <View style={styles.summaryDivider} />
                         <View style={styles.summaryItem}>
                             <Text style={styles.summaryLabel}>Balance</Text>
-                            <Text style={[styles.summaryValue, { color: finalBalance >= 0 ? theme.colors.danger : theme.colors.success }]}>
-                                ₹{formatNumber(Math.abs(finalBalance))}
-                                {finalBalance >= 0 ? ' DR' : ' CR'}
-                            </Text>
+                            {(() => {
+                                const bal = selectedParty ? finalBalance : allSummaryBalance;
+                                return (
+                                    <Text style={[styles.summaryValue, { color: bal >= 0 ? theme.colors.danger : theme.colors.success }]}>
+                                        ₹{formatNumber(Math.abs(bal))}
+                                        {bal >= 0 ? ' DR' : ' CR'}
+                                    </Text>
+                                );
+                            })()}
                         </View>
                     </View>
                 </View>
             )}
 
-            {/* Entries List */}
+            {/* Entries List or All Party Summary */}
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
                 showsVerticalScrollIndicator={false}
             >
-                {!selectedParty ? (
+                {!selectedParty && showAllSummary ? (
+                    loadingSummary ? (
+                        <View style={styles.emptyContainer}>
+                            <ActivityIndicator size="large" color={theme.colors.primary} />
+                            <Text style={styles.emptyText}>Loading all party summary...</Text>
+                        </View>
+                    ) : allPartySummary.length === 0 ? (
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyIcon}>📊</Text>
+                            <Text style={styles.emptyText}>No party summary available</Text>
+                            <Text style={styles.emptySubText}>Add a party and ledger entries to see the summary</Text>
+                        </View>
+                    ) : (
+                        <>
+                            <View style={styles.tableHeader}>
+                                <Text style={[styles.tableHeaderText, { flex: 1.8 }]}>Party Name</Text>
+                                <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Total DR</Text>
+                                <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Total CR</Text>
+                                <Text style={[styles.tableHeaderText, { flex: 1.3, textAlign: 'right' }]}>Balance</Text>
+                            </View>
+
+                            {allPartySummary.map((item, index) => {
+                                const bal = parseFloat(item.balance) || 0;
+                                return (
+                                    <TouchableOpacity
+                                        key={`${item.partyName}-${index}`}
+                                        style={[styles.entryRow, index % 2 === 0 && styles.entryRowAlt]}
+                                        onPress={() => {
+                                            setShowAllSummary(false);
+                                            setSelectedParty(item.partyName);
+                                        }}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={[styles.entryCellText, { flex: 1.8, fontWeight: theme.fontWeight.semibold }]} numberOfLines={1}>
+                                            {item.partyName}
+                                        </Text>
+                                        <Text style={[styles.entryCellText, { flex: 1, textAlign: 'right', color: item.totalDR > 0 ? theme.colors.danger : theme.colors.textMuted }]}>
+                                            {formatNumber(item.totalDR)}
+                                        </Text>
+                                        <Text style={[styles.entryCellText, { flex: 1, textAlign: 'right', color: item.totalCR > 0 ? theme.colors.success : theme.colors.textMuted }]}>
+                                            {formatNumber(item.totalCR)}
+                                        </Text>
+                                        <Text style={[styles.entryCellText, {
+                                            flex: 1.3,
+                                            textAlign: 'right',
+                                            fontWeight: theme.fontWeight.bold,
+                                            color: bal >= 0 ? theme.colors.danger : theme.colors.success,
+                                        }]}>
+                                            {formatNumber(Math.abs(bal))}{bal >= 0 ? ' DR' : ' CR'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                            <Text style={styles.editHint}>Tap any party to view its ledger entries 📋</Text>
+                        </>
+                    )
+                ) : !selectedParty ? (
                     <View style={styles.emptyContainer}>
                         <Text style={styles.emptyIcon}>📋</Text>
                         <Text style={styles.emptyText}>Select a party to view ledger entries</Text>
                         <Text style={styles.emptySubText}>Use the buttons above to add or select a party</Text>
+                        <TouchableOpacity
+                            style={styles.emptySummaryBtn}
+                            onPress={handleShowAllSummary}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.emptySummaryBtnText}>📊 Show All Party Summary</Text>
+                        </TouchableOpacity>
                     </View>
                 ) : loading ? (
                     <View style={styles.emptyContainer}>
@@ -472,6 +582,7 @@ export const LedgerScreen = ({ navigation }) => {
                                             selectedParty === item && styles.partyItemActive,
                                         ]}
                                         onPress={() => {
+                                            setShowAllSummary(false);
                                             setSelectedParty(item);
                                             setSelectPartyModalVisible(false);
                                         }}
@@ -690,7 +801,28 @@ const styles = StyleSheet.create({
     selectPartyBtn: {
         backgroundColor: theme.colors.primary,
     },
+    allSummaryBtn: {
+        backgroundColor: '#6366f1',
+    },
+    allSummaryBtnActive: {
+        backgroundColor: '#4338ca',
+        borderWidth: 1.5,
+        borderColor: '#c7d2fe',
+    },
     actionBtnText: {
+        color: '#fff',
+        fontWeight: theme.fontWeight.bold,
+        fontSize: theme.fontSize.xs,
+    },
+    emptySummaryBtn: {
+        marginTop: theme.spacing.lg,
+        backgroundColor: '#6366f1',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: theme.borderRadius.md,
+        ...theme.shadows.sm,
+    },
+    emptySummaryBtnText: {
         color: '#fff',
         fontWeight: theme.fontWeight.bold,
         fontSize: theme.fontSize.sm,

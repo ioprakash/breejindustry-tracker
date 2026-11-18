@@ -69,7 +69,13 @@ export const AttendanceScreen = ({ navigation }) => {
                     : `Attendance ${type} requested for approval.`;
 
                 Alert.alert(result.queued ? 'Offline' : 'Success', message, [
-                    { text: 'OK', onPress: () => loadHistory() }
+                    {
+                        text: 'OK',
+                        onPress: () => {
+                            setFormData(prev => ({ ...prev, workDescription: '' }));
+                            loadHistory();
+                        }
+                    }
                 ]);
             } else {
                 Alert.alert('Error', result.error || 'Failed to submit attendance');
@@ -188,9 +194,14 @@ export const AttendanceScreen = ({ navigation }) => {
                                         <View style={[styles.typeBadge, item.type === 'In' ? styles.inBadge : styles.outBadge]}>
                                             <Text style={styles.typeText}>{item.type}</Text>
                                         </View>
-                                        <View>
+                                        <View style={{ flex: 1 }}>
                                             <Text style={styles.histDate}>{item.date}</Text>
                                             <Text style={styles.histTime}>{item.time}</Text>
+                                            {item.workDescription ? (
+                                                <Text style={styles.histWorkDesc} numberOfLines={2}>
+                                                    📝 {item.workDescription}
+                                                </Text>
+                                            ) : null}
                                         </View>
                                     </View>
                                     <StatusBadge status={item.status} />
@@ -327,6 +338,8 @@ const styles = StyleSheet.create({
         borderColor: theme.colors.borderLight,
     },
     historyLeft: {
+        flex: 1,
+        marginRight: theme.spacing.sm,
         flexDirection: 'row',
         alignItems: 'center',
         gap: theme.spacing.md,
@@ -356,6 +369,11 @@ const styles = StyleSheet.create({
     histTime: {
         fontSize: 12,
         color: theme.colors.textSecondary,
+    },
+    histWorkDesc: {
+        fontSize: 12,
+        color: theme.colors.text,
+        marginTop: 3,
     },
     statusBadge: {
         paddingHorizontal: 10,
